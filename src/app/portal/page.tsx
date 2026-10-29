@@ -1,27 +1,27 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  getGuardianPortalPetsAndTodayReports, 
-  getGuardians 
+import {
+  getGuardianPortalPetsAndTodayReports,
+  getGuardians
 } from "@/services/db-service";
 import { Pet, DailyReport, Guardian } from "@/types/database.types";
-import { 
-  formatDateBR, 
-  formatTimeBR, 
-  getTodayDateString 
+import {
+  formatDateBR,
+  formatTimeBR,
+  getTodayDateString
 } from "@/lib/date-utils";
 import { PetAvatar } from "@/components/PetAvatar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { 
-  Dog, 
-  Clock, 
-  Utensils, 
-  Flame, 
-  Camera, 
-  ShieldCheck, 
-  AlertTriangle, 
-  LogOut, 
+import {
+  Dog,
+  Clock,
+  Utensils,
+  Flame,
+  Camera,
+  ShieldCheck,
+  AlertTriangle,
+  LogOut,
   Heart,
   Calendar,
   Sparkles,
@@ -32,7 +32,6 @@ import Link from "next/link";
 export default function PortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phoneOrEmailInput, setPhoneOrEmailInput] = useState("");
-  const [passwordInput, setPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
 
   const [guardian, setGuardian] = useState<Guardian | null>(null);
@@ -44,9 +43,48 @@ export default function PortalPage() {
 
   useEffect(() => {
     setTodayStr(getTodayDateString());
+
+    // Se houver telefone ou email nos parâmetros da URL (ex: vindo direto do link do WhatsApp)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlTutor = params.get("tutor") || params.get("phone");
+      if (urlTutor) {
+        setPhoneOrEmailInput(urlTutor);
+        // Tenta auto login se vier com parâmetro
+        autoLoginWithParam(urlTutor);
+      }
+    }
   }, []);
 
-  // Tenta autenticar
+  const autoLoginWithParam = async (identifier: string) => {
+    setLoading(true);
+    try {
+      const allGuardians = await getGuardians();
+      const cleanPhone = identifier.replace(/\D/g, "");
+
+      const found = allGuardians.find(g =>
+        (cleanPhone && g.phone.replace(/\D/g, "").includes(cleanPhone)) ||
+        (g.email && g.email.toLowerCase() === identifier.toLowerCase().trim())
+      );
+
+      if (found) {
+        const portalData = await getGuardianPortalPetsAndTodayReports(identifier);
+        setGuardian(portalData.guardian);
+        setPets(portalData.pets);
+        setReports(portalData.reports);
+        if (portalData.pets.length > 0) {
+          setSelectedPetId(portalData.pets[0].id);
+        }
+        setIsAuthenticated(true);
+      }
+    } catch {
+      // Ignora erro no auto login silencioso
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login sem senha: apenas telefone ou e-mail
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
@@ -55,14 +93,14 @@ export default function PortalPage() {
     try {
       const allGuardians = await getGuardians();
       const cleanPhone = phoneOrEmailInput.replace(/\D/g, "");
-      
-      const found = allGuardians.find(g => 
+
+      const found = allGuardians.find(g =>
         (cleanPhone && g.phone.replace(/\D/g, "").includes(cleanPhone)) ||
         (g.email && g.email.toLowerCase() === phoneOrEmailInput.toLowerCase().trim())
       );
 
       if (!found) {
-        setAuthError("Responsável não encontrado com esse telefone ou e-mail.");
+        setAuthError("Nenhum responsável encontrado com esse telefone ou e-mail. Verifique se o cadastro foi realizado pela equipe da creche.");
         setLoading(false);
         return;
       }
@@ -77,7 +115,7 @@ export default function PortalPage() {
       }
       setIsAuthenticated(true);
     } catch {
-      setAuthError("Erro ao autenticar. Tente novamente.");
+      setAuthError("Erro ao acessar o portal. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +128,6 @@ export default function PortalPage() {
     setReports([]);
     setSelectedPetId("");
     setPhoneOrEmailInput("");
-    setPasswordInput("");
   };
 
   // Pet ativo selecionado
@@ -108,7 +145,7 @@ export default function PortalPage() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#CD8DA7] to-[#79B7DE] flex items-center justify-center text-white mx-auto shadow-md">
               <Dog className="w-9 h-9" />
             </div>
-            <h1 className="text-2xl font-black text-[#25313B] tracking-tight">Portal do Tutor</h1>
+            <h1 className="text-2xl font-black text-[#25313B] tracking-tight">Portal do Responsável</h1>
             <p className="text-xs text-[#5B6570]">
               Acompanhamento diário da Creche Dermabichos
             </p>
@@ -122,29 +159,19 @@ export default function PortalPage() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-[#25313B]">Telefone (WhatsApp) ou E-mail:</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#25313B]">Seu Telefone (WhatsApp) ou E-mail:</label>
               <input
                 type="text"
                 required
                 value={phoneOrEmailInput}
                 onChange={(e) => setPhoneOrEmailInput(e.target.value)}
-                placeholder="Ex: 11987654321 ou seu@email.com"
-                className="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#79B7DE] transition-colors"
+                placeholder="Ex: (11) 98765-4321 ou seu@email.com"
+                className="w-full text-sm p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#79B7DE] transition-colors shadow-2xs font-medium"
               />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-[#25313B]">Senha de Acesso:</label>
-              <input
-                type="password"
-                required
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="••••••••"
-                className="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#79B7DE] transition-colors"
-              />
-              <p className="text-[10px] text-slate-400">Senha padrão fornecida pela recepção da creche.</p>
+              <p className="text-[11px] text-[#5B6570]">
+                Acesso direto sem senha: basta informar o número ou e-mail cadastrado na creche.
+              </p>
             </div>
 
             {authError && (
@@ -156,34 +183,34 @@ export default function PortalPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#CD8DA7] to-[#CD8DA7]/90 hover:opacity-95 shadow-md transition-all disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#CD8DA7] to-[#CD8DA7]/90 hover:opacity-95 shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {loading ? "Entrando..." : "Acessar Diário de Hoje"}
+              {loading ? "Localizando Diário..." : "Ver Diário de Hoje do Meu Pet"}
             </button>
           </form>
 
           {/* Dica para teste rápido de demonstração */}
           <div className="pt-2 border-t border-slate-100 text-center">
-            <p className="text-[11px] text-slate-400 mb-1.5 font-medium">Contas de teste para demonstração:</p>
+            <p className="text-[11px] text-slate-400 mb-1.5 font-medium">Clique para testar com um tutor cadastrado:</p>
             <div className="flex flex-wrap justify-center gap-1.5 text-[11px]">
               <button
                 type="button"
-                onClick={() => { setPhoneOrEmailInput("11987654321"); setPasswordInput("123456"); }}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-md text-slate-600"
+                onClick={() => setPhoneOrEmailInput("11987654321")}
+                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium transition-colors"
               >
                 Mariana (Thor)
               </button>
               <button
                 type="button"
-                onClick={() => { setPhoneOrEmailInput("11991234567"); setPasswordInput("123456"); }}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-md text-slate-600"
+                onClick={() => setPhoneOrEmailInput("11991234567")}
+                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium transition-colors"
               >
                 Carlos (Pipoca)
               </button>
               <button
                 type="button"
-                onClick={() => { setPhoneOrEmailInput("11976543210"); setPasswordInput("123456"); }}
-                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-md text-slate-600"
+                onClick={() => setPhoneOrEmailInput("11976543210")}
+                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium transition-colors"
               >
                 Renata (Mel & Bob)
               </button>
@@ -249,11 +276,10 @@ export default function PortalPage() {
               <button
                 key={p.id}
                 onClick={() => setSelectedPetId(p.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  selectedPetId === p.id
-                    ? "bg-[#25313B] text-white shadow-xs"
-                    : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
-                }`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${selectedPetId === p.id
+                  ? "bg-[#25313B] text-white shadow-xs"
+                  : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                  }`}
               >
                 <PetAvatar pet={p} size="sm" />
                 <span>{p.name}</span>
@@ -289,16 +315,16 @@ export default function PortalPage() {
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-slate-400 block text-[10px]">Horário de Entrada</span>
                 <span className="font-bold text-[#25313B] text-sm">
-                  {activeReport?.attendance?.check_in_time 
-                    ? formatTimeBR(activeReport.attendance.check_in_time) 
+                  {activeReport?.attendance?.check_in_time
+                    ? formatTimeBR(activeReport.attendance.check_in_time)
                     : "Ainda não chegou"}
                 </span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-slate-400 block text-[10px]">Horário de Saída</span>
                 <span className="font-bold text-[#25313B] text-sm">
-                  {activeReport?.attendance?.check_out_time 
-                    ? formatTimeBR(activeReport.attendance.check_out_time) 
+                  {activeReport?.attendance?.check_out_time
+                    ? formatTimeBR(activeReport.attendance.check_out_time)
                     : "Em estadia"}
                 </span>
               </div>

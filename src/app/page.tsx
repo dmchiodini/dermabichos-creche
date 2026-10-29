@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { 
-  Dog, 
-  UserCheck, 
-  ShieldCheck, 
-  Smartphone, 
-  ArrowRight, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Dog,
+  UserCheck,
+  ShieldCheck,
+  Smartphone,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
   Sparkles,
   Calendar,
   Lock
@@ -39,7 +39,7 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>Portal do Tutor</span>
+              <span>Portal</span>
             </Link>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Home() {
         {/* 1. MONITOR DA CRECHE */}
         <div className="bg-white rounded-3xl border-2 border-[#79B7DE]/40 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-28 h-28 bg-[#79B7DE]/10 rounded-full -mr-8 -mt-8 pointer-events-none" />
-          
+
           <div className="space-y-4">
             <div className="w-14 h-14 rounded-2xl bg-[#79B7DE] text-white flex items-center justify-center shadow-xs">
               <UserCheck className="w-7 h-7" />
@@ -220,7 +220,7 @@ export default function Home() {
             href="/portal"
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
           >
-            <span>Acessar Portal do Tutor</span>
+            <span>Acessar Portal do Responsável</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

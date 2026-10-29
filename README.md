@@ -24,7 +24,7 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 - Ficha de cuidados: alimentação (*comeu tudo, parcial, não comeu, não observado*), água, atividades com enriquecimento ambiental, soneca pós-almoço e comportamento.
 - **Upload de até 5 fotos por pet/dia** com política explícita de **retenção de 7 dias**.
 - **Fechamento Diário:** painel instantâneo com contagem de pets presentes, relatórios concluídos e pendências.
-- **Compartilhamento WhatsApp:** gera mensagem pré-formatada com o resumo dos fatos reais do dia e link direto para o Portal do Tutor.
+- **Compartilhamento WhatsApp:** gera mensagem pré-formatada com o resumo dos fatos reais do dia e link direto para o Portal do Responsável.
 
 ### 2. Portal do Tutor / Responsável (`/portal`)
 - Área exclusiva, responsiva e com acesso protegido por autenticação.
@@ -85,7 +85,7 @@ npm run dev
 
 Acesse no navegador:
 - Sistema interno: `http://localhost:3000/rotina`
-- Portal do tutor: `http://localhost:3000/portal`
+- Portal do responsável: `http://localhost:3000/portal`
 - Dashboard: `http://localhost:3000/dashboard`
 
 ---

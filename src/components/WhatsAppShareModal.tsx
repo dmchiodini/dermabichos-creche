@@ -51,7 +51,10 @@ export function WhatsAppShareModal({
     nao_observado: "Não observado",
   };
 
-  const portalUrl = typeof window !== "undefined" ? `${window.location.origin}/portal` : "https://dermabichos.vercel.app/portal";
+  const portalBase = typeof window !== "undefined" ? `${window.location.origin}/portal` : "https://dermabichos.vercel.app/portal";
+  const portalUrlWithParam = selectedGuardian?.phone 
+    ? `${portalBase}?tutor=${selectedGuardian.phone.replace(/\D/g, "")}`
+    : portalBase;
 
   const messageText = `🐾 *Dermabichos Creche Canina* - Resumo do Dia
 🐶 *Pet:* ${pet.name}
@@ -62,8 +65,8 @@ export function WhatsAppShareModal({
 💤 *Descanso pós-almoço:* ${napMap[report.nap_after_lunch] || report.nap_after_lunch}${report.nap_notes ? ` (${report.nap_notes})` : ""}
 ✨ *Socialização:* ${report.behavior_socialization || "Excelente convivência com a matilha!"}
 ${report.free_observations ? `📝 *Observações:* ${report.free_observations}\n` : ""}
-📸 *Fotos do dia e detalhes completos no Portal do Tutor:*
-👉 ${portalUrl}
+📸 *Fotos do dia e detalhes completos no Portal do Responsável:*
+👉 ${portalUrlWithParam}
 _(Lembrete: Fotos e momentos ficam disponíveis no portal por 7 dias)_
 
 Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
@@ -136,11 +139,10 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
               {guardians.map((g) => (
                 <label
                   key={g.id}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
-                    selectedGuardian?.id === g.id
+                  className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${selectedGuardian?.id === g.id
                       ? "border-[#79B7DE] bg-[#79B7DE]/10 font-semibold text-[#25313B]"
                       : "border-slate-200 hover:bg-slate-50 text-[#5B6570]"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <input

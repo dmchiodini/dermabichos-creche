@@ -52,7 +52,7 @@ export function Navbar() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#CD8DA7] text-white hover:bg-[#b87791]"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>Portal do Tutor</span>
+              <span>Portal do Responsável</span>
             </Link>
           </div>
         </div>
