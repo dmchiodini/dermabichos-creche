@@ -144,7 +144,7 @@ export default function PortalPage() {
             <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white border border-slate-200 p-1 mx-auto shadow-md">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/dermabichos-logo.svg"
+                src="/icon.svg"
                 alt="Dermabichos Logo"
                 className="w-full h-full object-contain"
               />
@@ -237,7 +237,7 @@ export default function PortalPage() {
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-white border border-slate-200 p-0.5 flex-shrink-0 shadow-2xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/dermabichos-logo.svg"
+                src="/icon.svg"
                 alt="Dermabichos Logo"
                 className="w-full h-full object-contain"
               />

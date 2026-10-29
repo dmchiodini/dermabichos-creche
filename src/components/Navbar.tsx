@@ -25,7 +25,7 @@ export function Navbar() {
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200 flex-shrink-0 shadow-xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/dermabichos-logo.svg"
+                src="/icon.svg"
                 alt="Dermabichos Logo"
                 className="w-full h-full object-contain"
               />

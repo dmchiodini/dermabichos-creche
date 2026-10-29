@@ -266,7 +266,7 @@ export default function MonitoraPage() {
             <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xs flex-shrink-0 bg-white p-0.5 border border-slate-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/dermabichos-logo.svg"
+                src="/icon.svg"
                 alt="Dermabichos Logo"
                 className="w-full h-full object-contain"
               />

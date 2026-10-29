@@ -3,14 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  Dog, 
-  BarChart3, 
-  Users, 
-  UserCheck, 
-  History, 
-  LogOut, 
-  ShieldCheck 
+import {
+  Dog,
+  BarChart3,
+  Users,
+  UserCheck,
+  History,
+  LogOut,
+  ShieldCheck
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -50,7 +50,7 @@ export default function AdminLayout({
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white p-0.5 flex-shrink-0 shadow-xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/dermabichos-logo.svg"
+                  src="/icon.svg"
                   alt="Dermabichos Logo"
                   className="w-full h-full object-contain"
                 />
@@ -75,11 +75,10 @@ export default function AdminLayout({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                      isActive
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${isActive
                         ? "bg-white/15 text-white border-b-2 border-[#79B7DE]"
                         : "text-slate-300 hover:text-white hover:bg-white/10"
-                    }`}
+                      }`}
                   >
                     <Icon className="w-4 h-4 text-[#79B7DE]" />
                     <span>{item.label}</span>
@@ -110,11 +109,10 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap ${
-                  isActive
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap ${isActive
                     ? "bg-white/20 text-white font-semibold"
                     : "text-slate-300 hover:text-white"
-                }`}
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5 text-[#79B7DE]" />
                 {item.label}
