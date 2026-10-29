@@ -384,3 +384,4 @@ CREATE POLICY "Admin pode consultar logs de auditoria" ON public.audit_logs
 CREATE POLICY "Sistema insere logs" ON public.audit_logs
     FOR INSERT TO authenticated
     WITH CHECK (true);
+

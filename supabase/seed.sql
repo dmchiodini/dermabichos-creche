@@ -34,3 +34,4 @@ INSERT INTO public.staff_members (id, name, role_title, active)
 VALUES
     ('99999999-9999-9999-9999-999999999999', 'Ana Paula (Monitora)', 'Monitora de Creche', true)
 ON CONFLICT (id) DO NOTHING;
+

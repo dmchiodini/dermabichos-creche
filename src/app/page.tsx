@@ -1,92 +1,234 @@
 import Link from "next/link";
 import { 
   Dog, 
-  ClipboardCheck, 
-  Smartphone, 
+  UserCheck, 
   ShieldCheck, 
-  Camera, 
-  HeartHandshake, 
-  MessageSquare,
-  Clock,
+  Smartphone, 
+  ArrowRight, 
+  CheckCircle2, 
+  Clock, 
   Sparkles,
-  ArrowRight
+  Calendar,
+  Lock
 } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-between">
-      {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#CD8DA7]/15 border border-[#CD8DA7]/30 text-xs font-bold text-[#CD8DA7]">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Gestão Especializada de Creche Canina</span>
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-[#f0f7fc] flex flex-col justify-between">
+      {/* Top Header */}
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CD8DA7] to-[#79B7DE] flex items-center justify-center text-white shadow-xs">
+              <Dog className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-lg text-[#25313B]">Dermabichos</span>
+                <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-xs font-bold px-2 py-0.5 rounded-full">
+                  Creche Canina
+                </span>
+              </div>
+              <p className="text-[11px] text-[#5B6570]">Gestão diária e acompanhamento em tempo real</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/portal"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Portal do Tutor</span>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Header */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#79B7DE]/15 text-[#25313B] text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5 text-[#79B7DE]" />
+          <span>Arquitetura Segregada por Nível de Acesso</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-3xl mx-auto leading-tight">
-          Cuidado, rotina diária e transparência para o seu petshop.
+        <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight">
+          Acessos do Sistema Creche Canina
         </h1>
 
-        <p className="text-sm sm:text-base text-[#5B6570] max-w-2xl mx-auto leading-relaxed">
-          Plataforma ágil para registro operacional da rotina canina (alimentação, atividades, soneca, fotos) e portal seguro exclusivo para tutores acompanharem o dia em tempo real.
+        <p className="text-sm sm:text-base text-[#5B6570] max-w-xl mx-auto">
+          Escolha seu perfil abaixo para acessar seu respectivo ambiente de trabalho ou consulta:
         </p>
+      </section>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+      {/* 3 Portals Cards Grid */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 1. MONITOR DA CRECHE */}
+        <div className="bg-white rounded-3xl border-2 border-[#79B7DE]/40 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#79B7DE]/10 rounded-full -mr-8 -mt-8 pointer-events-none" />
+          
+          <div className="space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#79B7DE] text-white flex items-center justify-center shadow-xs">
+              <UserCheck className="w-7 h-7" />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#25313B]">Monitora da Creche</h2>
+                <span className="bg-[#79B7DE]/15 text-[#79B7DE] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  Operacional
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
+                Ambiente exclusivo para o cuidador. Restrito <strong>estritamente ao dia de hoje</strong>.
+              </p>
+            </div>
+
+            <ul className="space-y-2 text-xs text-[#25313B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Check-in e check-out com registro de horários</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Alimentação, atividades, soneca e comportamento</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Até 5 fotos por pet (retenção de 7 dias)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Compartilhamento direto no WhatsApp</span>
+              </li>
+              <li className="flex items-center gap-2 text-slate-400 italic">
+                <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>Sem acesso a histórico passado ou cadastros</span>
+              </li>
+            </ul>
+          </div>
+
           <Link
-            href="/rotina"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-[#79B7DE] to-[#5ea4d0] shadow-md hover:shadow-lg transition-all"
+            href="/monitora/login"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#79B7DE] hover:bg-[#5ea4d0] shadow-xs transition-colors"
           >
-            <ClipboardCheck className="w-4 h-4" />
-            <span>Acessar Rotina Operacional</span>
+            <span>Entrar como Monitora</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
+        </div>
+
+        {/* 2. ADMINISTRADOR */}
+        <div className="bg-white rounded-3xl border-2 border-slate-300 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-slate-100 rounded-full -mr-8 -mt-8 pointer-events-none" />
+
+          <div className="space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#25313B] text-white flex items-center justify-center shadow-xs">
+              <ShieldCheck className="w-7 h-7 text-[#79B7DE]" />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#25313B]">Administração</h2>
+                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  Gestão Total
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
+                Gestão completa de dados cadastrais, indicadores, histórico e equipe.
+              </p>
+            </div>
+
+            <ul className="space-y-2 text-xs text-[#25313B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Cadastro e edição de pets e restrições</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Cadastro de tutores e vínculos de animais</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Gestão da equipe de monitores</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Dashboard de ocupação e taxa de presença</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Consulta a relatórios de <strong>qualquer data</strong></span>
+              </li>
+            </ul>
+          </div>
+
+          <Link
+            href="/admin/login"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#25313B] hover:bg-slate-800 shadow-xs transition-colors"
+          >
+            <span>Entrar como Administrador</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* 3. PORTAL DO TUTOR */}
+        <div className="bg-white rounded-3xl border-2 border-[#CD8DA7]/40 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-[#CD8DA7]/10 rounded-full -mr-8 -mt-8 pointer-events-none" />
+
+          <div className="space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#CD8DA7] to-[#b87791] text-white flex items-center justify-center shadow-xs">
+              <Smartphone className="w-7 h-7" />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#25313B]">Portal do Tutor</h2>
+                <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  Cliente
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
+                Área restrita onde o responsável acompanha em tempo real o dia do pet.
+              </p>
+            </div>
+
+            <ul className="space-y-2 text-xs text-[#25313B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Visualização apenas do <strong>dia atual</strong></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Apenas os cães vinculados ao tutor</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Horários de chegada, saída e alimentação</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Fotos do dia (disponíveis por até 7 dias)</span>
+              </li>
+              <li className="flex items-center gap-2 text-slate-400 italic">
+                <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>Sem acesso a outros cães ou histórico antigo</span>
+              </li>
+            </ul>
+          </div>
 
           <Link
             href="/portal"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-[#CD8DA7] to-[#b87791] shadow-md hover:shadow-lg transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
           >
-            <Smartphone className="w-4 h-4" />
-            <span>Abrir Portal do Tutor</span>
+            <span>Acessar Portal do Tutor</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
-        </div>
-      </section>
-
-      {/* Feature Highlights */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#79B7DE]/15 text-[#79B7DE] flex items-center justify-center font-bold">
-            <ClipboardCheck className="w-6 h-6" />
-          </div>
-          <h3 className="font-bold text-base text-[#25313B]">Rotina em Segundos</h3>
-          <p className="text-xs text-[#5B6570] leading-relaxed">
-            Interface otimizada para o monitor registrar presença, refeições, soneca pós-almoço e ocorrências sem burocracia ou formulários lentos.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#CD8DA7]/15 text-[#CD8DA7] flex items-center justify-center font-bold">
-            <Camera className="w-6 h-6" />
-          </div>
-          <h3 className="font-bold text-base text-[#25313B]">Fotos com Retenção de 7 Dias</h3>
-          <p className="text-xs text-[#5B6570] leading-relaxed">
-            Até 5 fotos por dia por pet, armazenadas com privacidade no Supabase Storage e excluídas automaticamente após uma semana.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <MessageSquare className="w-6 h-6" />
-          </div>
-          <h3 className="font-bold text-base text-[#25313B]">Resumo WhatsApp & Portal</h3>
-          <p className="text-xs text-[#5B6570] leading-relaxed">
-            Compartilhe mensagens pré-formatadas diretamente no WhatsApp do tutor com link seguro para o portal do cliente.
-          </p>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-[#5B6570]">
-        Dermabichos Creche Canina • Todos os direitos reservados.
+        Dermabichos Creche Canina • Sistema Operacional & Administrativo Segregado
       </footer>
     </div>
   );

@@ -48,3 +48,4 @@ export function formatDateTimeBR(isoString: string | null | undefined): string {
     return isoString;
   }
 }
+

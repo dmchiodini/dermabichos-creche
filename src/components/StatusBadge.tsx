@@ -103,3 +103,4 @@ export function StatusBadge({ type, value }: StatusBadgeProps) {
     </span>
   );
 }
+

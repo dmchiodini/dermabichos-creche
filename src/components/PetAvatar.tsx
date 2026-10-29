@@ -44,3 +44,4 @@ export function PetAvatar({ pet, size = "md" }: PetAvatarProps) {
     </div>
   );
 }
+
