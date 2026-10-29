@@ -23,7 +23,7 @@ export default function Home() {
             <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xs flex-shrink-0 bg-white p-0.5 border border-slate-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/dermabichos-logo.svg"
+                src="/icon.svg"
                 alt="Dermabichos Logo"
                 className="w-full h-full object-contain"
               />
@@ -32,10 +32,10 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-lg text-[#25313B]">Dermabichos</span>
                 <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-xs font-bold px-2 py-0.5 rounded-full">
-                  Creche Canina
+                  Creche dos Baixinhos
                 </span>
               </div>
-              <p className="text-[11px] text-[#5B6570]">Gestão diária e acompanhamento em tempo real</p>
+              <p className="text-[11px] text-[#5B6570]">Gestão e acompanhamento diário</p>
             </div>
           </div>
 
@@ -47,12 +47,12 @@ export default function Home() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 text-center">
         <div className="flex justify-center -mb-1">
           <Image
-            src="/dermabichos-logo.svg"
+            src="/dermabichos.png"
             alt="Dermabichos Logo"
-            width={190}
-            height={125}
+            width={250}
+            height={200}
             priority
-            className="w-40 sm:w-48 h-auto object-contain drop-shadow-2xs"
+            className="w-40 sm:w-60 h-auto object-contain drop-shadow-2xs"
           />
         </div>
         <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight mt-1">
