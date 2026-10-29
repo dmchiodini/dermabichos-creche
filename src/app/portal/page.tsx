@@ -24,7 +24,8 @@ import {
   Heart,
   Calendar,
   Sparkles,
-  Info
+  Info,
+  Download
 } from "lucide-react";
 
 export default function PortalPage() {
@@ -131,6 +132,59 @@ export default function PortalPage() {
   // Pet ativo selecionado
   const activePet = pets.find(p => p.id === selectedPetId);
   const activeReport = reports.find(r => r.pet_id === selectedPetId);
+
+  // Download de fotos
+  const [downloadingPhotoId, setDownloadingPhotoId] = useState<string | null>(null);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+
+  const handleDownloadPhoto = async (photoUrl: string, fileName: string, photoId: string) => {
+    try {
+      setDownloadingPhotoId(photoId);
+      if (photoUrl.startsWith("data:") || photoUrl.startsWith("blob:")) {
+        const link = document.createElement("a");
+        link.href = photoUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      const response = await fetch(photoUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Erro ao baixar foto:", error);
+      window.open(photoUrl, "_blank");
+    } finally {
+      setDownloadingPhotoId(null);
+    }
+  };
+
+  const handleDownloadAllPhotos = async () => {
+    if (!activeReport?.photos || activeReport.photos.length === 0) return;
+    setIsDownloadingAll(true);
+    try {
+      for (let i = 0; i < activeReport.photos.length; i++) {
+        const p = activeReport.photos[i];
+        const url = p.storage_url || p.file_path;
+        if (url) {
+          const fname = `dermabichos-${activePet?.name || "pet"}-${i + 1}.jpg`;
+          await handleDownloadPhoto(url, fname, p.id || String(i));
+          await new Promise((res) => setTimeout(res, 350));
+        }
+      }
+    } finally {
+      setIsDownloadingAll(false);
+    }
+  };
 
   // -------------------------------------------------------------
   // TELA DE LOGIN DO PORTAL DO TUTOR
@@ -414,6 +468,18 @@ export default function PortalPage() {
                     ({activeReport.photos?.length || 0}/5)
                   </span>
                 </div>
+
+                {activeReport.photos && activeReport.photos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadAllPhotos}
+                    disabled={isDownloadingAll}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#79B7DE]/10 hover:bg-[#79B7DE]/20 text-[#2c658a] text-xs font-semibold rounded-lg border border-[#79B7DE]/30 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isDownloadingAll ? "Baixando..." : "Baixar Todas"}</span>
+                  </button>
+                )}
               </div>
 
               {/* Aviso da regra de fotos temporárias */}
@@ -434,6 +500,26 @@ export default function PortalPage() {
                         alt={photo.caption || "Foto do dia"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
+
+                      {/* Botão Baixar Foto */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadPhoto(
+                            photo.storage_url || photo.file_path,
+                            `dermabichos-${activePet?.name || "pet"}-${i + 1}.jpg`,
+                            photo.id || String(i)
+                          );
+                        }}
+                        disabled={downloadingPhotoId === (photo.id || String(i))}
+                        className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white px-2 py-1 rounded-lg backdrop-blur-xs flex items-center gap-1.5 text-[11px] font-medium shadow-md transition-all active:scale-95 disabled:opacity-50 z-10"
+                        title="Baixar esta foto"
+                      >
+                        <Download className="w-3 h-3 text-[#79B7DE]" />
+                        <span>{downloadingPhotoId === (photo.id || String(i)) ? "Baixando..." : "Baixar"}</span>
+                      </button>
+
                       {photo.caption && (
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white text-[11px]">
                           {photo.caption}
