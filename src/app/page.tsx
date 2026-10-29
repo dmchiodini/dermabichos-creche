@@ -182,7 +182,7 @@ export default function Home() {
 
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-[#25313B]">Portal do Tutor</h2>
+                <h2 className="text-xl font-bold text-[#25313B]">Portal do Responsável</h2>
                 <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-[10px] font-bold px-2 py-0.5 rounded-full">
                   Cliente
                 </span>

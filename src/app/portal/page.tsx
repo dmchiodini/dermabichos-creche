@@ -27,7 +27,6 @@ import {
   Sparkles,
   Info
 } from "lucide-react";
-import Link from "next/link";
 
 export default function PortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -185,7 +184,7 @@ export default function PortalPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#CD8DA7] to-[#CD8DA7]/90 hover:opacity-95 shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {loading ? "Localizando Diário..." : "Ver Diário de Hoje do Meu Pet"}
+              {loading ? "Acessando..." : "Acessar"}
             </button>
           </form>
 
@@ -217,10 +216,6 @@ export default function PortalPage() {
             </div>
           </div>
         </div>
-
-        <Link href="/rotina" className="mt-6 text-xs text-[#5B6570] hover:text-[#25313B] font-medium underline">
-          Voltar para o Painel da Equipe
-        </Link>
       </div>
     );
   }
