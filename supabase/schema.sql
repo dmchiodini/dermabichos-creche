@@ -187,8 +187,18 @@ EXECUTE FUNCTION public.check_max_five_photos();
 
 -- 15. Configuração do Supabase Storage para Fotos Diárias
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('daily-photos', 'daily-photos', false)
-ON CONFLICT (id) DO UPDATE SET public = false;
+VALUES ('daily-photos', 'daily-photos', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Políticas de Storage para fotos da creche
+CREATE POLICY "Visualização pública de fotos diárias" ON storage.objects
+    FOR SELECT USING (bucket_id = 'daily-photos');
+
+CREATE POLICY "Permitir upload de fotos diárias" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'daily-photos');
+
+CREATE POLICY "Permitir exclusão de fotos diárias" ON storage.objects
+    FOR DELETE USING (bucket_id = 'daily-photos');
 
 -- 16. Rotina Idempotente de Exclusão de Fotos com mais de 7 dias
 CREATE OR REPLACE FUNCTION public.cleanup_expired_daily_photos()
