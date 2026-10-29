@@ -36,6 +36,7 @@ export default function PetsPage() {
 
   // Modal de Criação / Edição de Pet
   const [modalOpen, setModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingPet, setEditingPet] = useState<Partial<Pet> | null>(null);
   const [selectedGuardianIdToLink, setSelectedGuardianIdToLink] = useState("");
 
@@ -84,29 +85,40 @@ export default function PetsPage() {
 
   const handleSavePet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingPet || !editingPet.name) return;
-
-    const saved = await savePet(editingPet);
-
-    // Se selecionou um responsável para vincular
-    if (selectedGuardianIdToLink) {
-      await linkGuardianToPet(saved.id, selectedGuardianIdToLink);
-      const updatedGList = await getGuardiansForPet(saved.id);
-      setPetGuardiansMap(prev => ({ ...prev, [saved.id]: updatedGList }));
+    if (!editingPet || !editingPet.name || !editingPet.name.trim()) {
+      alert("Por favor, preencha o nome do pet.");
+      return;
     }
 
-    setPets(prev => {
-      const idx = prev.findIndex(p => p.id === saved.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = saved;
-        return copy;
-      }
-      return [...prev, saved];
-    });
+    try {
+      setIsSaving(true);
+      const saved = await savePet(editingPet);
 
-    setModalOpen(false);
-    setEditingPet(null);
+      // Se selecionou um responsável para vincular
+      if (selectedGuardianIdToLink) {
+        await linkGuardianToPet(saved.id, selectedGuardianIdToLink);
+        const updatedGList = await getGuardiansForPet(saved.id);
+        setPetGuardiansMap(prev => ({ ...prev, [saved.id]: updatedGList }));
+      }
+
+      setPets(prev => {
+        const idx = prev.findIndex(p => p.id === saved.id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = saved;
+          return copy;
+        }
+        return [...prev, saved];
+      });
+
+      setModalOpen(false);
+      setEditingPet(null);
+    } catch (err: unknown) {
+      console.error("Erro ao salvar pet:", err);
+      alert("Erro ao salvar pet: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleToggleStatus = async (pet: Pet) => {
@@ -456,9 +468,10 @@ export default function PetsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#CD8DA7] hover:bg-[#b87791] rounded-xl shadow-xs"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#CD8DA7] hover:bg-[#b87791] rounded-xl shadow-xs disabled:opacity-50"
                 >
-                  Salvar Pet
+                  {isSaving ? "Salvando..." : "Salvar Pet"}
                 </button>
               </div>
             </form>

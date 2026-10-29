@@ -28,6 +28,7 @@ export default function ResponsaveisPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingGuardian, setEditingGuardian] = useState<Partial<Guardian> | null>(null);
   const [selectedPetIdToLink, setSelectedPetIdToLink] = useState("");
 
@@ -62,26 +63,37 @@ export default function ResponsaveisPage() {
 
   const handleSaveGuardian = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingGuardian || !editingGuardian.full_name) return;
-
-    const saved = await saveGuardian(editingGuardian);
-
-    if (selectedPetIdToLink) {
-      await linkGuardianToPet(selectedPetIdToLink, saved.id);
+    if (!editingGuardian || !editingGuardian.full_name || !editingGuardian.full_name.trim()) {
+      alert("Por favor, preencha o nome do responsável.");
+      return;
     }
 
-    setGuardians(prev => {
-      const idx = prev.findIndex(g => g.id === saved.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = saved;
-        return copy;
-      }
-      return [...prev, saved];
-    });
+    try {
+      setIsSaving(true);
+      const saved = await saveGuardian(editingGuardian);
 
-    setModalOpen(false);
-    setEditingGuardian(null);
+      if (selectedPetIdToLink) {
+        await linkGuardianToPet(selectedPetIdToLink, saved.id);
+      }
+
+      setGuardians(prev => {
+        const idx = prev.findIndex(g => g.id === saved.id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = saved;
+          return copy;
+        }
+        return [...prev, saved];
+      });
+
+      setModalOpen(false);
+      setEditingGuardian(null);
+    } catch (err: unknown) {
+      console.error("Erro ao salvar responsável:", err);
+      alert("Erro ao salvar responsável: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const filtered = guardians.filter(g =>
@@ -298,9 +310,10 @@ export default function ResponsaveisPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs disabled:opacity-50"
                 >
-                  Salvar
+                  {isSaving ? "Salvando..." : "Salvar"}
                 </button>
               </div>
             </form>

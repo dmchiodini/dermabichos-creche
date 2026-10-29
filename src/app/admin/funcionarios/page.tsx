@@ -17,6 +17,7 @@ import { formatDateBR } from "@/lib/date-utils";
 export default function FuncionariosPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Partial<StaffMember> | null>(null);
 
@@ -46,21 +47,32 @@ export default function FuncionariosPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingStaff || !editingStaff.name) return;
+    if (!editingStaff || !editingStaff.name || !editingStaff.name.trim()) {
+      alert("Por favor, preencha o nome do colaborador.");
+      return;
+    }
 
-    const saved = await saveStaffMember(editingStaff);
-    setStaff(prev => {
-      const idx = prev.findIndex(s => s.id === saved.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = saved;
-        return copy;
-      }
-      return [...prev, saved];
-    });
+    try {
+      setIsSaving(true);
+      const saved = await saveStaffMember(editingStaff);
+      setStaff(prev => {
+        const idx = prev.findIndex(s => s.id === saved.id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = saved;
+          return copy;
+        }
+        return [...prev, saved];
+      });
 
-    setModalOpen(false);
-    setEditingStaff(null);
+      setModalOpen(false);
+      setEditingStaff(null);
+    } catch (err: unknown) {
+      console.error("Erro ao salvar colaborador:", err);
+      alert("Erro ao salvar colaborador: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleToggleActive = async (s: StaffMember) => {
@@ -198,9 +210,10 @@ export default function FuncionariosPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs"
+                  disabled={isSaving}
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs disabled:opacity-50"
                 >
-                  Salvar
+                  {isSaving ? "Salvando..." : "Salvar"}
                 </button>
               </div>
             </form>
