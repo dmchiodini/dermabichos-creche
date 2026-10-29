@@ -44,15 +44,22 @@ export default function Home() {
       </header>
 
       {/* Hero Header */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 text-center border">
-        <div className="flex justify-center">
-          <Image src={"/dermabichos-logo.svg"} alt="logo" width={250} height={250} />
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 text-center">
+        <div className="flex justify-center -mb-1">
+          <Image
+            src="/dermabichos-logo.svg"
+            alt="Dermabichos Logo"
+            width={190}
+            height={125}
+            priority
+            className="w-40 sm:w-48 h-auto object-contain drop-shadow-2xs"
+          />
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight">
-          Acessos do Sistema Creche dos Baixinhos
+        <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight mt-1">
+          Acessos do Sistema Creche Canina
         </h1>
 
-        <p className="text-sm sm:text-base text-[#5B6570] max-w-xl mx-auto">
+        <p className="text-sm sm:text-base text-[#5B6570] max-w-xl mx-auto mt-2">
           Escolha seu perfil abaixo para acessar seu respectivo ambiente de trabalho ou consulta:
         </p>
       </section>
