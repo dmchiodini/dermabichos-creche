@@ -20,7 +20,6 @@ import {
   Flame,
   Camera,
   ShieldCheck,
-  AlertTriangle,
   LogOut,
   Heart,
   Calendar,
@@ -405,7 +404,7 @@ export default function PortalPage() {
               </div>
             )}
 
-            {/* Galeria de Fotos do Dia (com aviso obrigatório de expiração em 7 dias) */}
+            {/* Galeria de Fotos do Dia */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -415,16 +414,11 @@ export default function PortalPage() {
                     ({activeReport.photos?.length || 0}/5)
                   </span>
                 </div>
-
-                <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3 text-amber-600" />
-                  Expira em 7 dias
-                </span>
               </div>
 
-              {/* Aviso da regra de 7 dias */}
+              {/* Aviso da regra de fotos temporárias */}
               <div className="p-2.5 bg-amber-50/70 border border-amber-100 rounded-xl text-[11px] text-amber-900">
-                As fotos do dia são temporárias e ficam salvas por até <strong>7 dias</strong> para compartilhamento dos momentos. Baixe as fotos que desejar guardar!
+                As fotos do dia são temporárias e ficam salvas até o final do dia para compartilhamento dos momentos. Baixe as fotos que desejar guardar!
               </div>
 
               {activeReport.photos && activeReport.photos.length > 0 ? (

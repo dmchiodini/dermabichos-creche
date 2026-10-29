@@ -67,7 +67,7 @@ export function WhatsAppShareModal({
 ${report.free_observations ? `📝 *Observações:* ${report.free_observations}\n` : ""}
 📸 *Fotos do dia e detalhes completos no Portal do Responsável:*
 👉 ${portalUrlWithParam}
-_(Lembrete: Fotos e momentos ficam disponíveis no portal por 7 dias)_
+_(Lembrete: As fotos ficam disponíveis no portal até o final do dia)_
 
 Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
 

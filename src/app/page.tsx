@@ -209,7 +209,7 @@ export default function Home() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Fotos do dia (disponíveis por até 7 dias)</span>
+                <span>Fotos do dia (disponíveis até o final do dia)</span>
               </li>
               <li className="flex items-center gap-2 text-slate-400 italic">
                 <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
