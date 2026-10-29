@@ -1,4 +1,4 @@
-# 🐾 Dermabichos — Gestão da Creche Canina
+# 🐾 Dermabichos — Gestão da Creche dos Baixinhos
 
 Sistema completo para planejamento, gestão operacional diária e acompanhamento em tempo real da creche canina do petshop **Dermabichos**.
 

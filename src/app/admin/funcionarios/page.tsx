@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { getStaffMembers, saveStaffMember } from "@/services/db-service";
 import { StaffMember } from "@/types/database.types";
-import { 
-  UserCheck, 
-  Plus, 
-  Edit3, 
-  Shield, 
-  Clock, 
-  CheckCircle2, 
-  XCircle 
+import {
+  UserCheck,
+  Plus,
+  Edit3,
+  Shield,
+  Clock,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { formatDateBR } from "@/lib/date-utils";
 
@@ -117,9 +117,8 @@ export default function FuncionariosPage() {
                   </div>
                 </div>
 
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                  member.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
-                }`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${member.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                  }`}>
                   {member.active ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3" />}
                   {member.active ? "Ativo" : "Inativo"}
                 </span>
@@ -184,7 +183,7 @@ export default function FuncionariosPage() {
                   required
                   value={editingStaff.role_title || ""}
                   onChange={(e) => setEditingStaff(prev => ({ ...prev, role_title: e.target.value }))}
-                  placeholder="Ex: Monitor de Creche Canina"
+                  placeholder="Ex: Monitor de Creche dos Baixinhos"
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
                 />
               </div>

@@ -52,11 +52,11 @@ export function WhatsAppShareModal({
   };
 
   const portalBase = typeof window !== "undefined" ? `${window.location.origin}/portal` : "https://dermabichos.vercel.app/portal";
-  const portalUrlWithParam = selectedGuardian?.phone 
+  const portalUrlWithParam = selectedGuardian?.phone
     ? `${portalBase}?tutor=${selectedGuardian.phone.replace(/\D/g, "")}`
     : portalBase;
 
-  const messageText = `🐾 *Dermabichos Creche Canina* - Resumo do Dia
+  const messageText = `🐾 *Dermabichos Creche dos Baixinhos* - Resumo do Dia
 🐶 *Pet:* ${pet.name}
 📅 *Data:* ${formatDateBR(report.date)}
 
@@ -140,8 +140,8 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
                 <label
                   key={g.id}
                   className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${selectedGuardian?.id === g.id
-                      ? "border-[#79B7DE] bg-[#79B7DE]/10 font-semibold text-[#25313B]"
-                      : "border-slate-200 hover:bg-slate-50 text-[#5B6570]"
+                    ? "border-[#79B7DE] bg-[#79B7DE]/10 font-semibold text-[#25313B]"
+                    : "border-slate-200 hover:bg-slate-50 text-[#5B6570]"
                     }`}
                 >
                   <div className="flex items-center gap-2">

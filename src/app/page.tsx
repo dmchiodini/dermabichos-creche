@@ -11,6 +11,7 @@ import {
   Calendar,
   Lock
 } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -19,8 +20,13 @@ export default function Home() {
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CD8DA7] to-[#79B7DE] flex items-center justify-center text-white shadow-xs">
-              <Dog className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xs flex-shrink-0 bg-white p-0.5 border border-slate-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dermabichos-logo.svg"
+                alt="Dermabichos Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -33,27 +39,17 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/portal"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Portal</span>
-            </Link>
-          </div>
+
         </div>
       </header>
 
       {/* Hero Header */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#79B7DE]/15 text-[#25313B] text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-[#79B7DE]" />
-          <span>Arquitetura Segregada por Nível de Acesso</span>
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 text-center border">
+        <div className="flex justify-center">
+          <Image src={"/dermabichos-logo.svg"} alt="logo" width={250} height={250} />
         </div>
-
         <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight">
-          Acessos do Sistema Creche Canina
+          Acessos do Sistema Creche dos Baixinhos
         </h1>
 
         <p className="text-sm sm:text-base text-[#5B6570] max-w-xl mx-auto">
@@ -228,7 +224,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-[#5B6570]">
-        Dermabichos Creche Canina • Sistema Operacional & Administrativo Segregado
+        Dermabichos Creche dos Baixinhos • Sistema Operacional & Administrativo Segregado
       </footer>
     </div>
   );

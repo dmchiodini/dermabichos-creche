@@ -5,6 +5,9 @@ import { Navbar } from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "Dermabichos — Gestão da Creche Canina",
   description: "Sistema de acompanhamento diário, rotina, relatórios e portal dos tutores da creche canina Dermabichos",
+  icons: {
+    icon: "/dermabichos-logo.svg",
+  },
 };
 
 export default function RootLayout({

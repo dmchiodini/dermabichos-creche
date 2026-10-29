@@ -263,8 +263,13 @@ export default function MonitoraPage() {
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#79B7DE] flex items-center justify-center text-white shadow-xs">
-              <Dog className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xs flex-shrink-0 bg-white p-0.5 border border-slate-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dermabichos-logo.svg"
+                alt="Dermabichos Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

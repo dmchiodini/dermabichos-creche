@@ -37,8 +37,13 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col justify-center items-center p-4">
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 rounded-2xl bg-[#25313B] text-white flex items-center justify-center mx-auto shadow-md">
-            <ShieldCheck className="w-9 h-9 text-[#79B7DE]" />
+          <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white border border-slate-200 p-1 mx-auto shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dermabichos-logo.svg"
+              alt="Dermabichos Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-black text-[#25313B]">Painel do Administrador</h1>
           <p className="text-xs text-[#5B6570]">

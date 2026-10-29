@@ -141,8 +141,13 @@ export default function PortalPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#fbf2f6] to-[#f0f7fc] flex flex-col justify-center items-center p-4">
         <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#CD8DA7] to-[#79B7DE] flex items-center justify-center text-white mx-auto shadow-md">
-              <Dog className="w-9 h-9" />
+            <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white border border-slate-200 p-1 mx-auto shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dermabichos-logo.svg"
+                alt="Dermabichos Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-2xl font-black text-[#25313B] tracking-tight">Portal do Responsável</h1>
             <p className="text-xs text-[#5B6570]">
@@ -229,8 +234,13 @@ export default function PortalPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#CD8DA7] to-[#79B7DE] flex items-center justify-center text-white">
-              <Dog className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white border border-slate-200 p-0.5 flex-shrink-0 shadow-2xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dermabichos-logo.svg"
+                alt="Dermabichos Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#25313B]">Dermabichos Creche</h2>
@@ -458,7 +468,7 @@ export default function PortalPage() {
 
       {/* Footer do Portal */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-[11px] text-[#5B6570]">
-        Dermabichos Creche Canina • Cuidando com amor e respeito à matilha.
+        Dermabichos Creche dos Baixinhos • Cuidando com amor e respeito à matilha.
       </footer>
     </div>
   );
