@@ -50,7 +50,7 @@ export default function Home() {
           <img
             src="/icon.svg"
             alt="Dermabichos Logo"
-            className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-xs"
+            className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
           />
         </div>
 
