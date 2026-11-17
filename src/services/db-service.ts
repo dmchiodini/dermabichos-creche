@@ -62,7 +62,8 @@ async function requireDateAccess(targetDate: string) {
 const petSchema = z.object({
   id: id.optional(),
   name: z.string().trim().min(1, "Nome do pet é obrigatório").max(80),
-  photo_url: z.string().max(2000).nullable().optional(),
+  // Link https ou foto enviada pelo admin (data-URL, já comprimida no navegador).
+  photo_url: z.string().max(8_500_000).nullable().optional(),
   breed: shortText.optional(),
   gender: z.enum(["macho", "femea"]).optional(),
   birth_date: z.string().max(20).nullable().optional(),
@@ -357,8 +358,8 @@ export async function removeDailyActivityPhoto(photoId: string, activityLogId: s
 // -------------------------------------------------------------
 /** Remove do pet as notas internas da equipe antes de enviar ao portal. */
 function toPublicPet(pet: Pet): Pet {
-  const { id: petId, name, photo_url, breed, gender, approximate_age, size, status, created_at } = pet;
-  return { id: petId, name, photo_url, breed, gender, approximate_age, size, status, created_at };
+  const { id: petId, name, photo_url, breed, gender, approximate_age, status, created_at } = pet;
+  return { id: petId, name, photo_url, breed, gender, approximate_age, status, created_at };
 }
 
 export async function getGuardianPortalPetsAndTodayReports(): Promise<ActionResult<PortalData>> {

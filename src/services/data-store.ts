@@ -115,14 +115,43 @@ export async function getPets(): Promise<Pet[]> {
   return mem.pets;
 }
 
+async function getPetById(id: string): Promise<Pet | null> {
+  const supabase = db();
+  if (supabase) {
+    const { data, error } = await supabase.from("pets").select("*").eq("id", id).maybeSingle();
+    if (!error && data) return data as Pet;
+  }
+  return mem.pets.find((p) => p.id === id) ?? null;
+}
+
+/** Caminho no bucket de uma URL pública do nosso Storage (ou null se for link externo). */
+function storagePathFromUrl(url: string | null | undefined): string | null {
+  const marker = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
+  const idx = url?.indexOf(marker) ?? -1;
+  return url && idx >= 0 ? decodeURIComponent(url.slice(idx + marker.length).split("?")[0]) : null;
+}
+
 export async function savePet(pet: Partial<Pet>): Promise<Pet> {
   const id = pet.id || crypto.randomUUID();
   const now = new Date().toISOString();
 
+  // Foto enviada do computador/celular: sobe para o Storage e guarda só a URL.
+  let photoUrl = sanitizeImageUrl(pet.photo_url);
+  if (photoUrl && DATA_URL_RE.test(photoUrl)) {
+    photoUrl = (await storePhoto(`pets/${id}`, photoUrl)).storage_url;
+  }
+
+  // Ao trocar ou remover a foto, apaga a anterior do Storage (se era nossa).
+  if (pet.id) {
+    const previous = (await getPetById(pet.id))?.photo_url;
+    const previousPath = storagePathFromUrl(previous);
+    if (previousPath && previous !== photoUrl) await removeStoredFiles([previousPath]);
+  }
+
   const payload: Pet = {
     id,
     name: pet.name?.trim() || "Sem Nome",
-    photo_url: sanitizeImageUrl(pet.photo_url),
+    photo_url: photoUrl,
     breed: pet.breed || "Não especificado",
     gender: pet.gender || "macho",
     birth_date: pet.birth_date || null,

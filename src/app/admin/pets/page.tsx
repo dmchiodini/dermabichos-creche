@@ -9,11 +9,14 @@ import {
   linkGuardianToPet
 } from "@/services/db-service";
 import { unwrap, errorMessage } from "@/lib/action-result";
-import { Pet, Guardian, PetSize, PetStatus } from "@/types/database.types";
+import { Pet, Guardian, PetStatus } from "@/types/database.types";
 import { PetAvatar } from "@/components/PetAvatar";
 import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
+import { PetPhotoField } from "@/components/PetPhotoField";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { DOG_BREEDS } from "@/lib/dog-breeds";
 import {
   Dog,
   Plus,
@@ -32,7 +35,6 @@ export default function PetsPage() {
   const [petGuardiansMap, setPetGuardiansMap] = useState<Record<string, Guardian[]>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("all");
 
   // Modal de Criação / Edição de Pet
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,7 +70,6 @@ export default function PetsPage() {
       photo_url: "",
       breed: "",
       gender: "macho",
-      size: "medio",
       approximate_age: "",
       temperament: "",
       diet_restrictions: "",
@@ -91,12 +92,6 @@ export default function PetsPage() {
     e.preventDefault();
     if (!editingPet || !editingPet.name || !editingPet.name.trim()) {
       toast.error("Por favor, preencha o nome do pet.");
-      return;
-    }
-
-    const photo = editingPet.photo_url?.trim();
-    if (photo && !/^https?:\/\//i.test(photo)) {
-      toast.error("O link da foto deve começar com https://");
       return;
     }
 
@@ -155,10 +150,9 @@ export default function PetsPage() {
     return pets.filter(p => {
       const matchesSearch = !term || p.name.toLowerCase().includes(term) ||
                             (p.breed && p.breed.toLowerCase().includes(term));
-      const matchesSize = selectedSizeFilter === "all" || p.size === selectedSizeFilter;
-      return matchesSearch && matchesSize;
+      return matchesSearch;
     });
-  }, [pets, searchTerm, selectedSizeFilter]);
+  }, [pets, searchTerm]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -198,22 +192,6 @@ export default function PetsPage() {
             className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
           />
         </div>
-
-        <div className="flex items-center gap-1.5 self-start sm:self-auto">
-          {["all", "pequeno", "medio", "grande"].map((size) => (
-            <button
-              key={size}
-              onClick={() => setSelectedSizeFilter(size)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
-                selectedSizeFilter === size
-                  ? "bg-ink text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              {size === "all" ? "Todos os Portes" : size}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Grid of Pets */}
@@ -249,9 +227,6 @@ export default function PetsPage() {
                         <p className="text-xs text-ink-soft mt-0.5">
                           {pet.breed || "SRD"} • {pet.gender === "macho" ? "Macho" : "Fêmea"} • {pet.approximate_age}
                         </p>
-                        <span className="inline-block mt-1 text-[10px] uppercase font-bold text-brand-blue-ink bg-brand-blue/10 px-2 py-0.5 rounded">
-                          Porte {pet.size}
-                        </span>
                       </div>
                     </div>
 
@@ -371,19 +346,19 @@ export default function PetsPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-ink">Raça</label>
-                  <input
-                    type="text"
-                    value={editingPet.breed || ""}
-                    onChange={(e) => setEditingPet(prev => ({ ...prev, breed: e.target.value }))}
-                    placeholder="Ex: Golden Retriever"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
+                <SearchableSelect
+                  label="Raça"
+                  value={editingPet.breed && editingPet.breed !== "Não especificado" ? editingPet.breed : ""}
+                  options={DOG_BREEDS}
+                  onChange={(breed) => setEditingPet(prev => ({ ...prev, breed }))}
+                  placeholder="Selecione a raça"
+                  searchPlaceholder="Buscar raça..."
+                  emptyMessage="Nenhuma raça encontrada."
+                  disabled={isSaving}
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-ink">Sexo</label>
                   <select
@@ -393,19 +368,6 @@ export default function PetsPage() {
                   >
                     <option value="macho">Macho</option>
                     <option value="femea">Fêmea</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-ink">Porte *</label>
-                  <select
-                    value={editingPet.size || "medio"}
-                    onChange={(e) => setEditingPet(prev => ({ ...prev, size: e.target.value as PetSize }))}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                  >
-                    <option value="pequeno">Pequeno</option>
-                    <option value="medio">Médio</option>
-                    <option value="grande">Grande</option>
                   </select>
                 </div>
 
@@ -421,17 +383,11 @@ export default function PetsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-ink">Link da Foto de Perfil (Opcional)</label>
-                <input
-                  type="url"
-                  value={editingPet.photo_url || ""}
-                  onChange={(e) => setEditingPet(prev => ({ ...prev, photo_url: e.target.value }))}
-                  placeholder="https://exemplo.com/foto.jpg"
-                  inputMode="url"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                />
-              </div>
+              <PetPhotoField
+                pet={editingPet}
+                disabled={isSaving}
+                onChange={(photo_url) => setEditingPet(prev => ({ ...prev, photo_url }))}
+              />
 
               <div className="space-y-1">
                 <label className="font-bold text-ink">Temperamento & Convivência</label>

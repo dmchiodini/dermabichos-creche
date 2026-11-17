@@ -40,7 +40,7 @@ async function decode(file: File): Promise<ImageBitmap | HTMLImageElement> {
  * Redimensiona (lado maior ≤ 1600px) e recomprime a foto em JPEG.
  * Reduz o envio de ~3–8 MB para ~150–400 KB por foto, sem perda visível.
  */
-export async function compressImage(file: File): Promise<string> {
+export async function compressImage(file: File, maxDimension = MAX_DIMENSION): Promise<string> {
   if (!file.type.startsWith("image/")) {
     throw new Error("Selecione apenas arquivos de imagem.");
   }
@@ -57,7 +57,7 @@ export async function compressImage(file: File): Promise<string> {
 
   const width = "naturalWidth" in source ? source.naturalWidth : source.width;
   const height = "naturalHeight" in source ? source.naturalHeight : source.height;
-  const scale = Math.min(1, MAX_DIMENSION / Math.max(width, height));
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
   const targetW = Math.round(width * scale);
   const targetH = Math.round(height * scale);
 
@@ -81,7 +81,7 @@ export function slugify(text: string): string {
   return (
     text
       .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "foto"

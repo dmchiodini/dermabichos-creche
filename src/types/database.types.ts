@@ -40,7 +40,8 @@ export interface Pet {
   gender?: 'macho' | 'femea';
   birth_date?: string | null;
   approximate_age?: string | null;
-  size: PetSize;
+  /** Porte: não é mais exibido nem editado; mantido no banco com o padrão "medio". */
+  size?: PetSize;
   temperament?: string;
   diet_restrictions?: string;
   allergies?: string;

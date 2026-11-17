@@ -477,7 +477,7 @@ export default function MonitoraPage() {
             <div>
               <p className="text-[11px] text-ink-soft font-medium leading-tight">Diários Fechados</p>
               <p className="text-xl sm:text-2xl font-black text-brand-blue-ink mt-0.5">
-                {completedReportsCount} <span className="text-xs font-normal text-slate-400">/ {presentCount || 1}</span>
+                {completedReportsCount} <span className="text-xs font-normal text-slate-400">/ {presentCount}</span>
               </p>
             </div>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-blue/15 text-brand-blue-ink flex items-center justify-center font-bold shrink-0">
@@ -487,9 +487,9 @@ export default function MonitoraPage() {
 
           <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
             <div>
-              <p className="text-[11px] text-ink-soft font-medium leading-tight">No WhatsApp</p>
+              <p className="text-[11px] text-ink-soft font-medium leading-tight">Enviados no WhatsApp</p>
               <p className="text-xl sm:text-2xl font-black text-ink mt-0.5">
-                {sharedReportsCount} <span className="text-xs font-normal text-slate-400">/ {presentCount || 1}</span>
+                {sharedReportsCount} <span className="text-xs font-normal text-slate-400">/ {presentCount}</span>
               </p>
             </div>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
@@ -749,12 +749,7 @@ export default function MonitoraPage() {
                           <div className="flex items-center gap-2.5">
                             <PetAvatar pet={pet} size="md" />
                             <div>
-                              <div className="flex items-center gap-1.5">
-                                <h3 className="font-bold text-base text-ink leading-tight">{pet.name}</h3>
-                                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
-                                  {pet.size}
-                                </span>
-                              </div>
+                              <h3 className="font-bold text-base text-ink leading-tight">{pet.name}</h3>
                               <p className="text-xs text-ink-soft">{pet.breed || "SRD"} • {pet.approximate_age}</p>
                             </div>
                           </div>
