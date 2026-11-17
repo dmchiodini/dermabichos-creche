@@ -18,7 +18,7 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 
 ## 🚀 Funcionalidades Principais
 
-### 1. Rotina Diária Operacional (`/rotina`)
+### 1. Rotina Diária Operacional (`/monitora`)
 - Operação mobile-first ágil pensada para o monitor da creche.
 - Check-in e check-out rápidos com registro de horários.
 - Ficha de cuidados: alimentação (*comeu tudo, parcial, não comeu, não observado*), água, atividades com enriquecimento ambiental, soneca pós-almoço e comportamento.
@@ -33,16 +33,16 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 - Seletor de pets caso o tutor possua mais de um animal cadastrado (ex.: Mel e Bob).
 
 ### 3. Gestão Cadastral Completa
-- **Pets (`/pets`):** Cadastro com porte, raça, foto, temperamento, restrições alimentares, alergias e vínculo com tutores. *(Sem módulos desnecessários de vacinas, conforme o escopo do MVP)*.
-- **Responsáveis (`/responsaveis`):** Gestão de dados de contato, WhatsApp e múltiplos cães vinculados.
-- **Equipe (`/funcionarios`):** Cadastro de monitores, ativação e desativação segura sem apagar o histórico de auditoria.
+- **Pets (`/admin/pets`):** Cadastro com porte, raça, foto, temperamento, restrições alimentares, alergias e vínculo com tutores. *(Sem módulos desnecessários de vacinas, conforme o escopo do MVP)*.
+- **Responsáveis (`/admin/responsaveis`):** Gestão de dados de contato, WhatsApp e múltiplos cães vinculados.
+- **Equipe (`/admin/funcionarios`):** Cadastro de monitores, ativação e desativação segura sem apagar o histórico de auditoria.
 
-### 4. Dashboard de Indicadores (`/dashboard`)
+### 4. Dashboard de Indicadores (`/admin/dashboard`)
 - Taxa de presença por data e ocupação em relação à capacidade de referência da unidade.
 - Percentual de relatórios finalizados e compartilhados com tutores.
 - Indicadores de apetite e engajamento nas atividades.
 
-### 5. Histórico e Retenção de Fotos (`/historico`)
+### 5. Histórico e Retenção de Fotos (`/admin/historico`)
 - Consulta administrativa para qualquer data anterior.
 - Mantém todo o histórico textual registrado permanentemente.
 - Para datas com mais de 7 dias, exibe o aviso institucional de conformidade: *"Fotos expiradas após o prazo de armazenamento de 7 dias"*.
@@ -57,16 +57,40 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 
 ---
 
+## 🔐 Segurança & Acesso
+
+- **Sessões no servidor:** login gera um cookie `HttpOnly` assinado (HMAC-SHA256), um por área (admin, monitora, portal).
+- **`src/proxy.ts`** bloqueia `/admin/*` e `/monitora` sem sessão válida.
+- **`src/services/db-service.ts`** é a fronteira de segurança: toda leitura/escrita é uma Server Action que valida papel e entrada (zod). O navegador **não** acessa o Supabase diretamente.
+- **Regras garantidas no servidor:** monitora só opera o dia de hoje; portal só recebe os pets do próprio tutor, sem notas internas.
+- **Portal sem senha** (regra do produto): busca por telefone/e-mail com correspondência exata e limite de tentativas.
+
+### Variáveis de ambiente (`.env.local`)
+
+| Variável | Uso |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Projeto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave de servidor (sem ela, o RLS bloqueia escritas e o app usa dados de demonstração) |
+| `SESSION_SECRET` | Segredo das sessões (≥ 32 caracteres). Se ausente, é derivado da `SUPABASE_SERVICE_ROLE_KEY`. **Obrigatória na produção real** |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Acesso do administrador |
+| `STAFF_PIN` | PIN da equipe |
+| `DEMO_MODE` | Fase de testes: vazio = login livre (qualquer senha/PIN). **Na produção real use `false`** |
+
+**Fase de testes:** sem `ADMIN_PASSWORD`/`STAFF_PIN`, o sistema (local e Vercel) roda em **modo demonstração**: qualquer senha/PIN entra.
+
+---
+
 ## 🗄️ Configuração do Banco de Dados (Supabase)
 
 1. Acesse o **SQL Editor** do seu painel Supabase (`https://supabase.com/dashboard/project/etbukdpexskidpyoyylo/sql`).
 2. Abra e execute o arquivo [`supabase/schema.sql`](./supabase/schema.sql). Ele criará:
    - Todas as tabelas relacionais com chaves estrangeiras e índices.
    - Restrição e trigger de até 5 fotos por relatório diário.
-   - Criação do bucket privado `daily-photos`.
+   - Criação do bucket `daily-photos` (leitura pública, escrita apenas da equipe).
    - Rotina SQL idempotente `cleanup_expired_daily_photos()` com agendamento `pg_cron` para exclusão automática após 7 dias.
    - Políticas RLS completas garantindo que tutores acessem apenas dados do dia atual dos seus próprios pets.
-3. (Opcional) Execute o arquivo [`supabase/seed.sql`](./supabase/seed.sql) para inserir pets e tutores de teste.
+3. **Banco já existente?** Execute também [`supabase/migrations/20261117_security_hardening.sql`](./supabase/migrations/20261117_security_hardening.sql) (cria `activity_templates` e fecha o Storage, que permitia upload/exclusão anônimos).
+4. (Opcional) Execute o arquivo [`supabase/seed.sql`](./supabase/seed.sql) para inserir pets e tutores de teste.
 
 ---
 
@@ -84,9 +108,9 @@ npm run dev
 ```
 
 Acesse no navegador:
-- Sistema interno: `http://localhost:3000/rotina`
+- Área da monitora: `http://localhost:3000/monitora`
 - Portal do responsável: `http://localhost:3000/portal`
-- Dashboard: `http://localhost:3000/dashboard`
+- Administração: `http://localhost:3000/admin/dashboard`
 
 ---
 
@@ -95,4 +119,4 @@ Acesse no navegador:
 ```bash
 npm run build
 ```
-O build compila 100% de forma estática e otimizada para a Vercel.
+Na fase de testes basta `SUPABASE_SERVICE_ROLE_KEY` na Vercel. **Antes da produção real**, configure também `DEMO_MODE=false`, `SESSION_SECRET`, `ADMIN_PASSWORD` e `STAFF_PIN`.

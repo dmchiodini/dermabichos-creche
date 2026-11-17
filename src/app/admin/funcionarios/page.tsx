@@ -2,19 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { getStaffMembers, saveStaffMember } from "@/services/db-service";
+import { unwrap, errorMessage } from "@/lib/action-result";
 import { StaffMember } from "@/types/database.types";
+import { Modal } from "@/components/ui/Modal";
+import { CardGridSkeleton } from "@/components/ui/Skeleton";
+import { useFeedback } from "@/components/ui/Feedback";
 import {
   UserCheck,
   Plus,
-  Edit3,
-  Shield,
-  Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
-import { formatDateBR } from "@/lib/date-utils";
 
 export default function FuncionariosPage() {
+  const { toast, confirm } = useFeedback();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -22,14 +24,11 @@ export default function FuncionariosPage() {
   const [editingStaff, setEditingStaff] = useState<Partial<StaffMember> | null>(null);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      const list = await getStaffMembers();
-      setStaff(list);
-      setLoading(false);
-    }
-    load();
-  }, []);
+    unwrap(getStaffMembers())
+      .then(setStaff)
+      .catch((err) => toast.error(errorMessage(err, "Erro ao carregar a equipe.")))
+      .finally(() => setLoading(false));
+  }, [toast]);
 
   const handleOpenNew = () => {
     setEditingStaff({
@@ -48,13 +47,13 @@ export default function FuncionariosPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStaff || !editingStaff.name || !editingStaff.name.trim()) {
-      alert("Por favor, preencha o nome do colaborador.");
+      toast.error("Por favor, preencha o nome do colaborador.");
       return;
     }
 
     try {
       setIsSaving(true);
-      const saved = await saveStaffMember(editingStaff);
+      const saved = await unwrap(saveStaffMember(editingStaff));
       setStaff(prev => {
         const idx = prev.findIndex(s => s.id === saved.id);
         if (idx >= 0) {
@@ -67,17 +66,31 @@ export default function FuncionariosPage() {
 
       setModalOpen(false);
       setEditingStaff(null);
+      toast.success(editingStaff.id ? "Colaborador atualizado." : "Colaborador cadastrado com sucesso!");
     } catch (err: unknown) {
-      console.error("Erro ao salvar colaborador:", err);
-      alert("Erro ao salvar colaborador: " + (err instanceof Error ? err.message : String(err)));
+      toast.error(errorMessage(err, "Erro ao salvar colaborador."));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleToggleActive = async (s: StaffMember) => {
-    const updated = await saveStaffMember({ ...s, active: !s.active });
-    setStaff(prev => prev.map(item => item.id === s.id ? updated : item));
+    if (s.active) {
+      const ok = await confirm({
+        title: `Desativar o acesso de ${s.name}?`,
+        message: "O histórico de registros feitos por este colaborador é mantido. Você pode reativar a qualquer momento.",
+        confirmLabel: "Desativar acesso",
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    try {
+      const updated = await unwrap(saveStaffMember({ ...s, active: !s.active }));
+      setStaff(prev => prev.map(item => item.id === s.id ? updated : item));
+      toast.success(updated.active ? "Acesso reativado." : "Acesso desativado.");
+    } catch (err) {
+      toast.error(errorMessage(err, "Erro ao alterar o acesso."));
+    }
   };
 
   return (
@@ -85,12 +98,12 @@ export default function FuncionariosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-[#25313B]">Equipe da Creche</h1>
-            <span className="bg-[#79B7DE]/15 text-[#79B7DE] text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <h1 className="text-xl sm:text-2xl font-bold text-ink">Equipe da Creche</h1>
+            <span className="bg-brand-blue/15 text-brand-blue-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {staff.length} colaboradores
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-[#5B6570] mt-0.5">
+          <p className="text-xs sm:text-sm text-ink-soft mt-0.5">
             Monitores responsáveis pelo registro operacional e cuidados diários
           </p>
         </div>
@@ -98,7 +111,7 @@ export default function FuncionariosPage() {
         <button
           type="button"
           onClick={handleOpenNew}
-          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] shadow-xs transition-colors self-start sm:self-auto"
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-blue hover:bg-brand-blue-dark shadow-xs transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Cadastrar Monitor</span>
@@ -106,10 +119,10 @@ export default function FuncionariosPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-[#5B6570]">Carregando equipe...</div>
+        <CardGridSkeleton count={3} label="Carregando equipe..." />
       ) : staff.length === 0 ? (
         <div className="bg-white p-8 rounded-2xl text-center border border-slate-200">
-          <p className="text-sm font-semibold text-[#25313B]">Nenhum colaborador cadastrado.</p>
+          <p className="text-sm font-semibold text-ink">Nenhum colaborador cadastrado.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -120,12 +133,12 @@ export default function FuncionariosPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#CD8DA7]/30 to-[#79B7DE]/30 flex items-center justify-center text-[#25313B] font-bold text-sm">
+                  <div className="w-11 h-11 rounded-xl bg-linear-to-br from-brand-pink/30 to-brand-blue/30 flex items-center justify-center text-ink font-bold text-sm">
                     {member.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="font-bold text-base text-[#25313B] leading-tight">{member.name}</h3>
-                    <p className="text-xs text-[#5B6570]">{member.role_title}</p>
+                    <h3 className="font-bold text-base text-ink leading-tight">{member.name}</h3>
+                    <p className="text-xs text-ink-soft">{member.role_title}</p>
                   </div>
                 </div>
 
@@ -148,7 +161,7 @@ export default function FuncionariosPage() {
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(member)}
-                  className="text-xs font-semibold text-[#79B7DE] hover:underline"
+                  className="text-xs font-semibold text-brand-blue-ink hover:underline"
                 >
                   Editar
                 </button>
@@ -159,25 +172,22 @@ export default function FuncionariosPage() {
       )}
 
       {/* Modal Cadastro/Edição */}
-      {modalOpen && editingStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-base font-bold text-[#25313B]">
-                {editingStaff.id ? "Editar Colaborador" : "Cadastrar Monitor"}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSave} className="space-y-3.5 text-xs sm:text-sm">
+      <Modal
+        open={modalOpen && !!editingStaff}
+        onClose={() => setModalOpen(false)}
+        locked={isSaving}
+        size="sm"
+        title={editingStaff?.id ? "Editar Colaborador" : "Cadastrar Monitor"}
+        icon={
+          <div className="w-9 h-9 rounded-xl bg-brand-blue/15 text-brand-blue-ink flex items-center justify-center">
+            <UserCheck className="w-4 h-4" />
+          </div>
+        }
+      >
+        {editingStaff && (
+            <form onSubmit={handleSave} className="p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
               <div className="space-y-1">
-                <label className="font-bold text-[#25313B]">Nome Completo *</label>
+                <label className="font-bold text-ink">Nome Completo *</label>
                 <input
                   type="text"
                   required
@@ -189,7 +199,7 @@ export default function FuncionariosPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-[#25313B]">Cargo / Função</label>
+                <label className="font-bold text-ink">Cargo / Função</label>
                 <input
                   type="text"
                   required
@@ -211,15 +221,15 @@ export default function FuncionariosPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-blue-ink hover:bg-ink rounded-xl shadow-xs disabled:opacity-60 cursor-pointer"
                 >
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isSaving ? "Salvando..." : "Salvar"}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

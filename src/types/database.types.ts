@@ -120,6 +120,38 @@ export interface DailyPhoto {
   is_expired?: boolean;
 }
 
+export interface DailyActivityPhoto {
+  id: string;
+  activity_log_id: string;
+  file_path: string;
+  storage_url?: string | null;
+  caption?: string | null;
+  created_by?: string | null;
+  created_at: string;
+}
+
+export interface DailyActivityLog {
+  id: string;
+  date: string; // YYYY-MM-DD
+  title: string; // Ex: "Brincadeira da caça", "Momento da soneca"
+  description: string;
+  created_by?: string | null;
+  created_by_name?: string | null;
+  created_at: string;
+  updated_at?: string;
+  photos: DailyActivityPhoto[]; // Até 10 fotos
+}
+
+export interface ActivityTemplate {
+  id: string;
+  title: string;
+  default_description: string;
+  category?: string;
+  active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Incident {
   id: string;
   report_id?: string | null;
@@ -155,3 +187,12 @@ export interface AuditLog {
   created_at: string;
 }
 
+
+/** Dados enviados ao Portal do Responsável (somente o dia atual, sem notas internas). */
+export interface PortalData {
+  guardian: { id: string; full_name: string };
+  pets: Pet[];
+  reports: DailyReport[];
+  activityLogs: DailyActivityLog[];
+  date: string;
+}

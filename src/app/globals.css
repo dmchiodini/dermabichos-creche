@@ -1,58 +1,125 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Tokens da marca Dermabichos (Tailwind v4)
+   Uso: bg-brand-pink, text-ink, border-brand-blue/40, etc.
+   ========================================================================== */
+@theme {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Rosa principal */
+  --color-brand-pink: #CD8DA7;
+  --color-brand-pink-dark: #b87791;
+  --color-brand-pink-light: #fbf2f6;
+  /* Variante para TEXTO sobre fundo claro (contraste ≥ 4.5:1) */
+  --color-brand-pink-ink: #9b4f70;
+
+  /* Azul principal */
+  --color-brand-blue: #79B7DE;
+  --color-brand-blue-dark: #5ea4d0;
+  --color-brand-blue-light: #f0f7fc;
+  /* Variante para TEXTO sobre fundo claro (contraste ≥ 4.5:1) */
+  --color-brand-blue-ink: #2c658a;
+
+  /* Tipografia */
+  --color-ink: #25313B;
+  --color-ink-soft: #5B6570;
+  --color-ink-dark: #1c262f;
+
+  /* Breakpoint extra para celulares maiores (era usado no código, mas não existia) */
+  --breakpoint-xs: 30rem;
+
+  --animate-fade-in: fade-in 0.18s ease-out both;
+  --animate-pop-in: pop-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-slide-up: slide-up 0.25s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 :root {
-  --brand-pink: #CD8DA7;
-  --brand-pink-hover: #b87791;
-  --brand-pink-light: #fbf2f6;
-  --brand-blue: #79B7DE;
-  --brand-blue-hover: #5ea4d0;
-  --brand-blue-light: #f0f7fc;
-
-  --background: #FFFFFF;
+  color-scheme: light;
   --surface: #F8FAFC;
-  --surface-hover: #F1F5F9;
-  
-  --text-primary: #25313B;
-  --text-secondary: #5B6570;
-  --text-muted: #8E9CA8;
+}
 
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #79B7DE;
-
-  --success: #16A34A;
-  --success-bg: #DCFCE7;
-  --warning: #D97706;
-  --warning-bg: #FEF3C7;
-  --danger: #DC2626;
-  --danger-bg: #FEE2E2;
+html {
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
 }
 
 body {
   background-color: var(--surface);
-  color: var(--text-primary);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
 }
 
-/* Custom utility colors */
-.bg-brand-pink { background-color: var(--brand-pink); }
-.bg-brand-pink-hover:hover { background-color: var(--brand-pink-hover); }
-.bg-brand-pink-light { background-color: var(--brand-pink-light); }
-.text-brand-pink { color: var(--brand-pink); }
+/* Evita zoom automático do iOS ao focar campos (exige ≥ 16px no celular). */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
 
-.bg-brand-blue { background-color: var(--brand-blue); }
-.bg-brand-blue-hover:hover { background-color: var(--brand-blue-hover); }
-.bg-brand-blue-light { background-color: var(--brand-blue-light); }
-.text-brand-blue { color: var(--brand-blue); }
-
-.bg-surface { background-color: var(--surface); }
-.text-primary-dark { color: var(--text-primary); }
-.text-secondary-dark { color: var(--text-secondary); }
-
-/* Focus and inputs */
-input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--brand-blue);
+/* ==========================================================================
+   Foco acessível: visível ao navegar pelo teclado, discreto no toque/mouse
+   ========================================================================== */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-brand-blue);
   outline-offset: 1px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+label:focus-within:has(input[type="file"]) {
+  outline: 2px solid var(--color-brand-blue-ink);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Utilitários
+   ========================================================================== */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Respeita quem prefere menos movimento na tela. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

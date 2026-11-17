@@ -1,27 +1,37 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  getGuardians, 
-  saveGuardian, 
-  getPets, 
-  linkGuardianToPet 
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  getGuardians,
+  saveGuardian,
+  getPets,
+  linkGuardianToPet
 } from "@/services/db-service";
+import { unwrap, errorMessage } from "@/lib/action-result";
 import { Guardian, Pet } from "@/types/database.types";
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Phone, 
-  Mail, 
-  Dog, 
-  Edit3, 
+import { Modal } from "@/components/ui/Modal";
+import { CardGridSkeleton } from "@/components/ui/Skeleton";
+import { useFeedback } from "@/components/ui/Feedback";
+import {
+  Users,
+  Plus,
+  Search,
+  Phone,
+  Mail,
+  Edit3,
   MessageSquare,
-  ShieldCheck,
-  Check
+  Loader2
 } from "lucide-react";
 
+/** Monta o link do WhatsApp com DDI 55 apenas quando ainda não estiver presente. */
+function whatsappLink(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const full = digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+  return `https://wa.me/${full}`;
+}
+
 export default function ResponsaveisPage() {
+  const { toast } = useFeedback();
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,15 +44,18 @@ export default function ResponsaveisPage() {
 
   useEffect(() => {
     async function load() {
-      setLoading(true);
-      const allGuardians = await getGuardians();
-      const allPets = await getPets();
-      setGuardians(allGuardians);
-      setPets(allPets);
-      setLoading(false);
+      try {
+        const [allGuardians, allPets] = await Promise.all([unwrap(getGuardians()), unwrap(getPets())]);
+        setGuardians(allGuardians);
+        setPets(allPets);
+      } catch (err) {
+        toast.error(errorMessage(err, "Erro ao carregar responsáveis."));
+      } finally {
+        setLoading(false);
+      }
     }
     load();
-  }, []);
+  }, [toast]);
 
   const handleOpenNew = () => {
     setEditingGuardian({
@@ -64,16 +77,20 @@ export default function ResponsaveisPage() {
   const handleSaveGuardian = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGuardian || !editingGuardian.full_name || !editingGuardian.full_name.trim()) {
-      alert("Por favor, preencha o nome do responsável.");
+      toast.error("Por favor, preencha o nome do responsável.");
+      return;
+    }
+    if ((editingGuardian.phone || "").replace(/\D/g, "").length < 10) {
+      toast.error("Informe o telefone com DDD (ex: (11) 98765-4321).");
       return;
     }
 
     try {
       setIsSaving(true);
-      const saved = await saveGuardian(editingGuardian);
+      const saved = await unwrap(saveGuardian(editingGuardian));
 
       if (selectedPetIdToLink) {
-        await linkGuardianToPet(selectedPetIdToLink, saved.id);
+        await unwrap(linkGuardianToPet(selectedPetIdToLink, saved.id));
       }
 
       setGuardians(prev => {
@@ -88,19 +105,24 @@ export default function ResponsaveisPage() {
 
       setModalOpen(false);
       setEditingGuardian(null);
+      toast.success(editingGuardian.id ? "Responsável atualizado." : "Responsável cadastrado com sucesso!");
     } catch (err: unknown) {
-      console.error("Erro ao salvar responsável:", err);
-      alert("Erro ao salvar responsável: " + (err instanceof Error ? err.message : String(err)));
+      toast.error(errorMessage(err, "Erro ao salvar responsável."));
     } finally {
       setIsSaving(false);
     }
   };
 
-  const filtered = guardians.filter(g =>
-    g.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.phone.includes(searchTerm) ||
-    (g.email && g.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const digits = term.replace(/\D/g, "");
+    return guardians.filter(g =>
+      !term ||
+      g.full_name.toLowerCase().includes(term) ||
+      (digits && g.phone.replace(/\D/g, "").includes(digits)) ||
+      (g.email && g.email.toLowerCase().includes(term))
+    );
+  }, [guardians, searchTerm]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -108,12 +130,12 @@ export default function ResponsaveisPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-[#25313B]">Responsáveis & Tutores</h1>
-            <span className="bg-[#79B7DE]/15 text-[#79B7DE] text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <h1 className="text-xl sm:text-2xl font-bold text-ink">Responsáveis & Tutores</h1>
+            <span className="bg-brand-blue/15 text-brand-blue-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {guardians.length} cadastrados
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-[#5B6570] mt-0.5">
+          <p className="text-xs sm:text-sm text-ink-soft mt-0.5">
             Gestão de contatos, WhatsApp para envio de relatórios e acesso ao portal
           </p>
         </div>
@@ -121,7 +143,7 @@ export default function ResponsaveisPage() {
         <button
           type="button"
           onClick={handleOpenNew}
-          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] shadow-xs transition-colors self-start sm:self-auto"
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-blue hover:bg-brand-blue-dark shadow-xs transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Cadastrar Responsável</span>
@@ -136,16 +158,16 @@ export default function ResponsaveisPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar por nome, telefone ou e-mail..."
-          className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-[#79B7DE] shadow-2xs"
+          className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
         />
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-12 text-[#5B6570]">Carregando responsáveis...</div>
+        <CardGridSkeleton label="Carregando responsáveis..." />
       ) : filtered.length === 0 ? (
         <div className="bg-white p-8 rounded-2xl text-center border border-slate-200">
-          <p className="text-sm font-semibold text-[#25313B]">Nenhum responsável encontrado.</p>
+          <p className="text-sm font-semibold text-ink">Nenhum responsável encontrado.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -157,12 +179,12 @@ export default function ResponsaveisPage() {
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#79B7DE]/30 to-[#CD8DA7]/30 flex items-center justify-center text-[#25313B] font-bold text-sm">
+                    <div className="w-11 h-11 rounded-xl bg-linear-to-br from-brand-blue/30 to-brand-pink/30 flex items-center justify-center text-ink font-bold text-sm">
                       {g.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-bold text-base text-[#25313B] leading-tight">{g.full_name}</h3>
-                      <p className="text-xs text-[#5B6570] flex items-center gap-1 mt-0.5">
+                      <h3 className="font-bold text-base text-ink leading-tight">{g.full_name}</h3>
+                      <p className="text-xs text-ink-soft flex items-center gap-1 mt-0.5">
                         <Phone className="w-3 h-3 text-slate-400" />
                         {g.phone || "Sem telefone cadastrado"}
                       </p>
@@ -172,21 +194,22 @@ export default function ResponsaveisPage() {
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(g)}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                    aria-label={`Editar ${g.full_name}`}
+                    className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                 </div>
 
                 {g.email && (
-                  <p className="text-xs text-[#5B6570] flex items-center gap-1.5">
+                  <p className="text-xs text-ink-soft flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
                     {g.email}
                   </p>
                 )}
 
                 {g.notes && (
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-[#25313B]">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-ink">
                     <span className="text-[10px] font-bold text-slate-400 block">OBSERVAÇÕES</span>
                     {g.notes}
                   </div>
@@ -195,9 +218,9 @@ export default function ResponsaveisPage() {
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                 <a
-                  href={`https://wa.me/55${g.phone.replace(/\D/g, "")}`}
+                  href={whatsappLink(g.phone)}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-1 text-emerald-600 hover:underline font-semibold"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -218,25 +241,23 @@ export default function ResponsaveisPage() {
       )}
 
       {/* Modal Cadastro/Edição */}
-      {modalOpen && editingGuardian && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-base font-bold text-[#25313B]">
-                {editingGuardian.id ? "Editar Responsável" : "Cadastrar Novo Responsável"}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGuardian} className="space-y-3.5 text-xs sm:text-sm">
+      <Modal
+        open={modalOpen && !!editingGuardian}
+        onClose={() => setModalOpen(false)}
+        locked={isSaving}
+        size="md"
+        title={editingGuardian?.id ? "Editar Responsável" : "Cadastrar Novo Responsável"}
+        subtitle="Contato usado no WhatsApp e no acesso ao portal"
+        icon={
+          <div className="w-9 h-9 rounded-xl bg-brand-blue/15 text-brand-blue-ink flex items-center justify-center">
+            <Users className="w-4 h-4" />
+          </div>
+        }
+      >
+        {editingGuardian && (
+            <form onSubmit={handleSaveGuardian} className="p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
               <div className="space-y-1">
-                <label className="font-bold text-[#25313B]">Nome Completo *</label>
+                <label className="font-bold text-ink">Nome Completo *</label>
                 <input
                   type="text"
                   required
@@ -249,9 +270,11 @@ export default function ResponsaveisPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-[#25313B]">Telefone WhatsApp *</label>
+                  <label className="font-bold text-ink">Telefone WhatsApp *</label>
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     required
                     value={editingGuardian.phone || ""}
                     onChange={(e) => setEditingGuardian(prev => ({ ...prev, phone: e.target.value }))}
@@ -261,7 +284,7 @@ export default function ResponsaveisPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-[#25313B]">E-mail</label>
+                  <label className="font-bold text-ink">E-mail</label>
                   <input
                     type="email"
                     value={editingGuardian.email || ""}
@@ -273,7 +296,7 @@ export default function ResponsaveisPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-[#25313B]">Observações e Autorizações</label>
+                <label className="font-bold text-ink">Observações e Autorizações</label>
                 <textarea
                   rows={2}
                   value={editingGuardian.notes || ""}
@@ -285,7 +308,7 @@ export default function ResponsaveisPage() {
 
               {/* Vincular com Pet */}
               <div className="space-y-1 border-t border-slate-100 pt-3">
-                <label className="font-bold text-[#25313B]">Vincular a um Cão:</label>
+                <label className="font-bold text-ink">Vincular a um Cão:</label>
                 <select
                   value={selectedPetIdToLink}
                   onChange={(e) => setSelectedPetIdToLink(e.target.value)}
@@ -311,15 +334,15 @@ export default function ResponsaveisPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#79B7DE] hover:bg-[#5ea4d0] rounded-xl shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-blue-ink hover:bg-ink rounded-xl shadow-xs disabled:opacity-60 cursor-pointer"
                 >
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isSaving ? "Salvando..." : "Salvar"}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

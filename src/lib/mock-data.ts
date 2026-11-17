@@ -1,4 +1,4 @@
-import { Pet, Guardian, DailyReport, Attendance, StaffMember, Incident, DailyPhoto } from "@/types/database.types";
+import { Pet, Guardian, DailyReport, Attendance, StaffMember, DailyActivityLog, ActivityTemplate } from "@/types/database.types";
 import { getTodayDateString } from "./date-utils";
 
 export const initialMockPets: Pet[] = [
@@ -230,3 +230,162 @@ export function getInitialMockTodayReports(): DailyReport[] {
     }
   ];
 }
+
+export function getInitialMockTodayActivityLogs(): DailyActivityLog[] {
+  const today = getTodayDateString();
+  return [
+    {
+      id: "act-log-1",
+      date: today,
+      title: "Brincadeira da caça",
+      description: "Nossos baixinhos precisavam encontrar uma forma de tirar o petisco de dentro do brinquedo. Essa atividade desenvolve coordenação motora, faro e integração, além de ser muito divertida.",
+      created_by_name: "Ana Paula (Monitora)",
+      created_at: `${today}T10:30:00-03:00`,
+      photos: [
+        {
+          id: "act-photo-1-1",
+          activity_log_id: "act-log-1",
+          file_path: "activities/caca_1.jpg",
+          storage_url: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80",
+          caption: "Thor focado em desvendar o brinquedo interativo",
+          created_at: `${today}T10:32:00-03:00`,
+        },
+        {
+          id: "act-photo-1-2",
+          activity_log_id: "act-log-1",
+          file_path: "activities/caca_2.jpg",
+          storage_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80",
+          caption: "Pipoca e Mel descobrindo os petiscos escondidos",
+          created_at: `${today}T10:35:00-03:00`,
+        },
+        {
+          id: "act-photo-1-3",
+          activity_log_id: "act-log-1",
+          file_path: "activities/caca_3.jpg",
+          storage_url: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=800&q=80",
+          caption: "Mel conquistou a recompensa com muito entusiasmo",
+          created_at: `${today}T10:40:00-03:00`,
+        },
+        {
+          id: "act-photo-1-4",
+          activity_log_id: "act-log-1",
+          file_path: "activities/caca_4.jpg",
+          storage_url: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80",
+          caption: "Bob descansando vitorioso após a brincadeira",
+          created_at: `${today}T10:45:00-03:00`,
+        }
+      ]
+    },
+    {
+      id: "act-log-2",
+      date: today,
+      title: "Momento da soneca",
+      description: "Após o almoço nutritivo, preparamos o ambiente climatizado com música ambiente relaxante e caminhas macias para nossos pequenos descansarem e recarregarem as energias.",
+      created_by_name: "Ana Paula (Monitora)",
+      created_at: `${today}T13:15:00-03:00`,
+      photos: [
+        {
+          id: "act-photo-2-1",
+          activity_log_id: "act-log-2",
+          file_path: "activities/soneca_1.jpg",
+          storage_url: "https://images.unsplash.com/photo-1534361960057-19889db98a1e?auto=format&fit=crop&w=800&q=80",
+          caption: "Sonequinha profunda e tranquila no espaço climatizado",
+          created_at: `${today}T13:20:00-03:00`,
+        },
+        {
+          id: "act-photo-2-2",
+          activity_log_id: "act-log-2",
+          file_path: "activities/soneca_2.jpg",
+          storage_url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80",
+          caption: "Descanso gostoso em grupo com muito aconchego",
+          created_at: `${today}T13:25:00-03:00`,
+        }
+      ]
+    },
+    {
+      id: "act-log-3",
+      date: today,
+      title: "Piscina e brincadeiras refrescantes",
+      description: "Aproveitando a tarde gostosa, liberamos a piscina rasa com bolinhas e jatos de água fresca. Uma festa para os baixinhos que adoram se refrescar!",
+      created_by_name: "Ana Paula (Monitora)",
+      created_at: `${today}T15:30:00-03:00`,
+      photos: [
+        {
+          id: "act-photo-3-1",
+          activity_log_id: "act-log-3",
+          file_path: "activities/piscina_1.jpg",
+          storage_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80",
+          caption: "Thor liderando a turma na água com pura alegria",
+          created_at: `${today}T15:35:00-03:00`,
+        },
+        {
+          id: "act-photo-3-2",
+          activity_log_id: "act-log-3",
+          file_path: "activities/piscina_2.jpg",
+          storage_url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=800&q=80",
+          caption: "Corrida com bolinhas ao redor da área externa",
+          created_at: `${today}T15:40:00-03:00`,
+        },
+        {
+          id: "act-photo-3-3",
+          activity_log_id: "act-log-3",
+          file_path: "activities/piscina_3.jpg",
+          storage_url: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+          caption: "Pipoca observando as bolinhas coloridas flutuando",
+          created_at: `${today}T15:45:00-03:00`,
+        }
+      ]
+    }
+  ];
+}
+
+export const initialMockActivityTemplates: ActivityTemplate[] = [
+  {
+    id: "tpl-1",
+    title: "Brincadeira da caça",
+    category: "Enriquecimento Cognitivo",
+    default_description: "Nossos baixinhos precisavam encontrar uma forma de tirar o petisco de dentro do brinquedo. Essa atividade desenvolve coordenação motora, faro e integração, além de ser muito divertida.",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  },
+  {
+    id: "tpl-2",
+    title: "Momento da soneca",
+    category: "Descanso & Relaxamento",
+    default_description: "Após o almoço nutritivo, preparamos o ambiente climatizado com música ambiente relaxante e caminhas macias para nossos pequenos descansarem e recarregarem as energias.",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  },
+  {
+    id: "tpl-3",
+    title: "Piscina e brincadeiras refrescantes",
+    category: "Recreação Aquática",
+    default_description: "Aproveitando a tarde gostosa, liberamos a piscina rasa com bolinhas e jatos de água fresca. Uma festa para os baixinhos que adoram se refrescar!",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  },
+  {
+    id: "tpl-4",
+    title: "Circuito de agilidade",
+    category: "Gasto de Energia & Foco",
+    default_description: "Montamos um percurso dinâmico com cones, túneis e obstáculos baixos para estimular o foco, equilíbrio, gasto saudável de energia e interação positiva entre a matilha.",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  },
+  {
+    id: "tpl-5",
+    title: "Enriquecimento sensorial",
+    category: "Estímulo Cognitivo",
+    default_description: "Atividade com diferentes texturas, aromas especiais e desafios táteis que estimulam a curiosidade natural dos cães e trazem sensação de bem-estar e tranquilidade.",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  },
+  {
+    id: "tpl-6",
+    title: "Socialização guiada no gramado",
+    category: "Convivência de Matilha",
+    default_description: "Momento livre de exploração do gramado externo com supervisão direta dos monitores, promovendo comunicação canina positiva, brincadeiras de pega-pega e respeito mútuo.",
+    active: true,
+    created_at: "2026-10-29T08:00:00Z",
+  }
+];

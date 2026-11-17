@@ -1,14 +1,5 @@
 import React from "react";
-import { 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  AlertCircle, 
-  Utensils, 
-  Activity, 
-  Moon, 
-  Share2 
-} from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Utensils, Share2 } from "lucide-react";
 
 interface StatusBadgeProps {
   type: "attendance" | "feeding" | "activity" | "nap" | "report";
@@ -78,8 +69,8 @@ export function StatusBadge({ type, value }: StatusBadgeProps) {
         );
       case "shared":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#79B7DE]/20 text-[#25313B] border border-[#79B7DE]/40">
-            <Share2 className="w-3 h-3 text-[#79B7DE]" /> Compartilhado
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-blue/20 text-ink border border-brand-blue/40">
+            <Share2 className="w-3 h-3 text-brand-blue-ink" /> Compartilhado
           </span>
         );
       case "in_progress":

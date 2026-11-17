@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS public.daily_reports (
     UNIQUE(pet_id, date)
 );
 
--- 9. Tabela de Fotos da Rotina (Temporárias - Retenção de 7 dias)
+-- 9. Tabela de Fotos da Rotina (Legado/Opcional)
 CREATE TABLE IF NOT EXISTS public.daily_photos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     report_id UUID NOT NULL REFERENCES public.daily_reports(id) ON DELETE CASCADE,
@@ -118,6 +118,40 @@ CREATE TABLE IF NOT EXISTS public.daily_photos (
     caption TEXT,
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9.1 Tabela de Registros do Dia (Atividades Coletivas da Creche)
+CREATE TABLE IF NOT EXISTS public.daily_activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    date DATE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_by_name TEXT,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9.2 Tabela de Fotos das Atividades (Até 10 fotos por atividade, limpeza ao final do dia)
+CREATE TABLE IF NOT EXISTS public.daily_activity_photos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    activity_log_id UUID NOT NULL REFERENCES public.daily_activity_logs(id) ON DELETE CASCADE,
+    file_path TEXT NOT NULL,
+    storage_url TEXT,
+    caption TEXT,
+    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9.3 Modelos de Atividades (catálogo gerenciado pelo administrador)
+CREATE TABLE IF NOT EXISTS public.activity_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    default_description TEXT NOT NULL DEFAULT '',
+    category TEXT DEFAULT 'Recreação',
+    active BOOLEAN DEFAULT true NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- 10. Tabela de Ocorrências / Incidentes
@@ -167,10 +201,35 @@ CREATE INDEX IF NOT EXISTS idx_daily_photos_report ON public.daily_photos(report
 CREATE INDEX IF NOT EXISTS idx_daily_photos_created ON public.daily_photos(created_at);
 CREATE INDEX IF NOT EXISTS idx_incidents_date ON public.incidents(date);
 CREATE INDEX IF NOT EXISTS idx_pet_guardians_guardian ON public.pet_guardians(guardian_id);
+CREATE INDEX IF NOT EXISTS idx_daily_activity_logs_date ON public.daily_activity_logs(date);
+CREATE INDEX IF NOT EXISTS idx_daily_activity_photos_log ON public.daily_activity_photos(activity_log_id);
+CREATE INDEX IF NOT EXISTS idx_daily_activity_photos_created ON public.daily_activity_photos(created_at);
+CREATE INDEX IF NOT EXISTS idx_activity_templates_active ON public.activity_templates(active);
+
+-- 14. Função e Trigger para limitar a 10 fotos por atividade nos Registros do Dia
+CREATE OR REPLACE FUNCTION public.check_max_ten_activity_photos()
+RETURNS TRIGGER
+SET search_path = public
+AS $$
+BEGIN
+    IF (SELECT count(*) FROM public.daily_activity_photos WHERE activity_log_id = NEW.activity_log_id) >= 10 THEN
+        RAISE EXCEPTION 'Limite máximo de 10 fotos por atividade atingido.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_max_ten_activity_photos ON public.daily_activity_photos;
+CREATE TRIGGER trigger_max_ten_activity_photos
+BEFORE INSERT ON public.daily_activity_photos
+FOR EACH ROW
+EXECUTE FUNCTION public.check_max_ten_activity_photos();
 
 -- 14. Função e Trigger para limitar a 5 fotos por relatório/pet/dia
 CREATE OR REPLACE FUNCTION public.check_max_five_photos()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public
+AS $$
 BEGIN
     IF (SELECT count(*) FROM public.daily_photos WHERE report_id = NEW.report_id) >= 5 THEN
         RAISE EXCEPTION 'Limite máximo de 5 fotos por relatório diário atingido.';
@@ -186,27 +245,36 @@ FOR EACH ROW
 EXECUTE FUNCTION public.check_max_five_photos();
 
 -- 15. Configuração do Supabase Storage para Fotos Diárias
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('daily-photos', 'daily-photos', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
+-- Leitura pública (o portal exibe as fotos por URL); limite de 6 MB e apenas imagens.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('daily-photos', 'daily-photos', true, 6291456, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+ON CONFLICT (id) DO UPDATE SET
+    public = true,
+    file_size_limit = EXCLUDED.file_size_limit,
+    allowed_mime_types = EXCLUDED.allowed_mime_types;
+-- As políticas de escrita do Storage ficam na seção de RLS (dependem de current_user_role()).
 
--- Políticas de Storage para fotos da creche
-CREATE POLICY "Visualização pública de fotos diárias" ON storage.objects
-    FOR SELECT USING (bucket_id = 'daily-photos');
-
-CREATE POLICY "Permitir upload de fotos diárias" ON storage.objects
-    FOR INSERT WITH CHECK (bucket_id = 'daily-photos');
-
-CREATE POLICY "Permitir exclusão de fotos diárias" ON storage.objects
-    FOR DELETE USING (bucket_id = 'daily-photos');
-
--- 16. Rotina Idempotente de Exclusão de Fotos com mais de 7 dias
+-- 16. Rotina Idempotente de Exclusão de Fotos ao Final do Dia (e retenção)
 CREATE OR REPLACE FUNCTION public.cleanup_expired_daily_photos()
 RETURNS void AS $$
 DECLARE
     photo_record RECORD;
+    act_photo_record RECORD;
 BEGIN
-    -- Seleciona e remove fotos com mais de 7 dias
+    -- 1. Remove fotos de atividades anteriores a hoje (limpeza ao final do dia)
+    FOR act_photo_record IN
+        SELECT id, file_path
+        FROM public.daily_activity_photos
+        WHERE created_at < (timezone('America/Sao_Paulo'::text, now()))::date
+    LOOP
+        DELETE FROM storage.objects
+        WHERE bucket_id = 'daily-photos' AND name = act_photo_record.file_path;
+
+        DELETE FROM public.daily_activity_photos
+        WHERE id = act_photo_record.id;
+    END LOOP;
+
+    -- 2. Seleciona e remove fotos individuais legadas com mais de 7 dias
     FOR photo_record IN 
         SELECT id, file_path 
         FROM public.daily_photos 
@@ -221,7 +289,10 @@ BEGIN
         WHERE id = photo_record.id;
     END LOOP;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, storage;
+
+-- A limpeza é disparada só pelo pg_cron; ninguém deve chamá-la via API (RPC).
+REVOKE ALL ON FUNCTION public.cleanup_expired_daily_photos() FROM PUBLIC, anon, authenticated;
 
 -- Agendamento diário à meia-noite via pg_cron (se disponível)
 DO $$
@@ -247,34 +318,46 @@ ALTER TABLE public.staff_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_activity_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report_shares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_templates ENABLE ROW LEVEL SECURITY;
 
 -- Helper: Função segura para verificar papel do usuário atual
+-- (perfis desativados perdem o acesso imediatamente)
 CREATE OR REPLACE FUNCTION public.current_user_role()
-RETURNS TEXT AS $$
-    SELECT role FROM public.profiles WHERE id = auth.uid();
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+RETURNS TEXT
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT role FROM public.profiles WHERE id = auth.uid() AND active = true;
+$$;
 
 -- PROFILES
+DROP POLICY IF EXISTS "Admin pode tudo em profiles" ON public.profiles;
 CREATE POLICY "Admin pode tudo em profiles" ON public.profiles
     FOR ALL TO authenticated
     USING (public.current_user_role() = 'admin');
 
+DROP POLICY IF EXISTS "Usuário pode ver próprio perfil" ON public.profiles;
 CREATE POLICY "Usuário pode ver próprio perfil" ON public.profiles
     FOR SELECT TO authenticated
     USING (id = auth.uid());
 
+DROP POLICY IF EXISTS "Equipe pode ver perfis" ON public.profiles;
 CREATE POLICY "Equipe pode ver perfis" ON public.profiles
     FOR SELECT TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
 -- PETS
+DROP POLICY IF EXISTS "Equipe pode gerenciar pets" ON public.pets;
 CREATE POLICY "Equipe pode gerenciar pets" ON public.pets
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável pode ver apenas seus pets" ON public.pets;
 CREATE POLICY "Responsável pode ver apenas seus pets" ON public.pets
     FOR SELECT TO authenticated
     USING (
@@ -287,19 +370,23 @@ CREATE POLICY "Responsável pode ver apenas seus pets" ON public.pets
     );
 
 -- GUARDIANS
+DROP POLICY IF EXISTS "Equipe pode gerenciar responsáveis" ON public.guardians;
 CREATE POLICY "Equipe pode gerenciar responsáveis" ON public.guardians
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável pode ver seu próprio registro" ON public.guardians;
 CREATE POLICY "Responsável pode ver seu próprio registro" ON public.guardians
     FOR SELECT TO authenticated
     USING (user_id = auth.uid());
 
 -- PET_GUARDIANS
+DROP POLICY IF EXISTS "Equipe pode gerenciar vínculos pet-responsável" ON public.pet_guardians;
 CREATE POLICY "Equipe pode gerenciar vínculos pet-responsável" ON public.pet_guardians
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável pode ver seus vínculos" ON public.pet_guardians;
 CREATE POLICY "Responsável pode ver seus vínculos" ON public.pet_guardians
     FOR SELECT TO authenticated
     USING (
@@ -309,10 +396,12 @@ CREATE POLICY "Responsável pode ver seus vínculos" ON public.pet_guardians
     );
 
 -- ATTENDANCE
+DROP POLICY IF EXISTS "Equipe pode gerenciar presenças" ON public.attendance;
 CREATE POLICY "Equipe pode gerenciar presenças" ON public.attendance
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável vê presença APENAS do dia atual de seus pets" ON public.attendance;
 CREATE POLICY "Responsável vê presença APENAS do dia atual de seus pets" ON public.attendance
     FOR SELECT TO authenticated
     USING (
@@ -326,10 +415,12 @@ CREATE POLICY "Responsável vê presença APENAS do dia atual de seus pets" ON p
     );
 
 -- DAILY_REPORTS
+DROP POLICY IF EXISTS "Equipe pode gerenciar relatórios diários" ON public.daily_reports;
 CREATE POLICY "Equipe pode gerenciar relatórios diários" ON public.daily_reports
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável vê relatório APENAS do dia atual de seus pets" ON public.daily_reports;
 CREATE POLICY "Responsável vê relatório APENAS do dia atual de seus pets" ON public.daily_reports
     FOR SELECT TO authenticated
     USING (
@@ -344,10 +435,12 @@ CREATE POLICY "Responsável vê relatório APENAS do dia atual de seus pets" ON 
     );
 
 -- DAILY_PHOTOS
+DROP POLICY IF EXISTS "Equipe pode gerenciar fotos diárias" ON public.daily_photos;
 CREATE POLICY "Equipe pode gerenciar fotos diárias" ON public.daily_photos
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável vê fotos APENAS do dia atual de seus pets" ON public.daily_photos;
 CREATE POLICY "Responsável vê fotos APENAS do dia atual de seus pets" ON public.daily_photos
     FOR SELECT TO authenticated
     USING (
@@ -363,11 +456,40 @@ CREATE POLICY "Responsável vê fotos APENAS do dia atual de seus pets" ON publi
         )
     );
 
+-- DAILY_ACTIVITY_LOGS (Registros do Dia)
+DROP POLICY IF EXISTS "Equipe pode gerenciar registros de atividades" ON public.daily_activity_logs;
+CREATE POLICY "Equipe pode gerenciar registros de atividades" ON public.daily_activity_logs
+    FOR ALL TO authenticated
+    USING (public.current_user_role() IN ('admin', 'staff'));
+
+DROP POLICY IF EXISTS "Responsável vê registros de atividades do dia atual" ON public.daily_activity_logs;
+CREATE POLICY "Responsável vê registros de atividades do dia atual" ON public.daily_activity_logs
+    FOR SELECT TO authenticated
+    USING (date = (timezone('America/Sao_Paulo'::text, now()))::date);
+
+-- DAILY_ACTIVITY_PHOTOS (Fotos das Atividades do Dia)
+DROP POLICY IF EXISTS "Equipe pode gerenciar fotos de atividades" ON public.daily_activity_photos;
+CREATE POLICY "Equipe pode gerenciar fotos de atividades" ON public.daily_activity_photos
+    FOR ALL TO authenticated
+    USING (public.current_user_role() IN ('admin', 'staff'));
+
+DROP POLICY IF EXISTS "Responsável vê fotos de atividades do dia atual" ON public.daily_activity_photos;
+CREATE POLICY "Responsável vê fotos de atividades do dia atual" ON public.daily_activity_photos
+    FOR SELECT TO authenticated
+    USING (
+        activity_log_id IN (
+            SELECT id FROM public.daily_activity_logs
+            WHERE date = (timezone('America/Sao_Paulo'::text, now()))::date
+        )
+    );
+
 -- INCIDENTS
+DROP POLICY IF EXISTS "Equipe pode gerenciar ocorrências" ON public.incidents;
 CREATE POLICY "Equipe pode gerenciar ocorrências" ON public.incidents
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
+DROP POLICY IF EXISTS "Responsável vê ocorrências do dia atual de seus pets se notificadas" ON public.incidents;
 CREATE POLICY "Responsável vê ocorrências do dia atual de seus pets se notificadas" ON public.incidents
     FOR SELECT TO authenticated
     USING (
@@ -382,16 +504,48 @@ CREATE POLICY "Responsável vê ocorrências do dia atual de seus pets se notifi
     );
 
 -- REPORT_SHARES
+DROP POLICY IF EXISTS "Equipe gerencia compartilhamentos" ON public.report_shares;
 CREATE POLICY "Equipe gerencia compartilhamentos" ON public.report_shares
     FOR ALL TO authenticated
     USING (public.current_user_role() IN ('admin', 'staff'));
 
 -- AUDIT_LOGS
+DROP POLICY IF EXISTS "Admin pode consultar logs de auditoria" ON public.audit_logs;
 CREATE POLICY "Admin pode consultar logs de auditoria" ON public.audit_logs
     FOR SELECT TO authenticated
     USING (public.current_user_role() = 'admin');
 
+DROP POLICY IF EXISTS "Sistema insere logs" ON public.audit_logs;
 CREATE POLICY "Sistema insere logs" ON public.audit_logs
     FOR INSERT TO authenticated
-    WITH CHECK (true);
+    WITH CHECK (user_id = auth.uid());
+
+-- ACTIVITY_TEMPLATES
+DROP POLICY IF EXISTS "Equipe vê modelos de atividades" ON public.activity_templates;
+CREATE POLICY "Equipe vê modelos de atividades" ON public.activity_templates
+    FOR SELECT TO authenticated
+    USING (public.current_user_role() IN ('admin', 'staff'));
+
+DROP POLICY IF EXISTS "Admin gerencia modelos de atividades" ON public.activity_templates;
+CREATE POLICY "Admin gerencia modelos de atividades" ON public.activity_templates
+    FOR ALL TO authenticated
+    USING (public.current_user_role() = 'admin')
+    WITH CHECK (public.current_user_role() = 'admin');
+
+-- STORAGE (bucket daily-photos): leitura pública, escrita somente da equipe
+DROP POLICY IF EXISTS "Permitir upload de fotos diárias" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir exclusão de fotos diárias" ON storage.objects;
+DROP POLICY IF EXISTS "Visualização pública de fotos diárias" ON storage.objects;
+CREATE POLICY "Visualização pública de fotos diárias" ON storage.objects
+    FOR SELECT USING (bucket_id = 'daily-photos');
+
+DROP POLICY IF EXISTS "Equipe envia fotos diárias" ON storage.objects;
+CREATE POLICY "Equipe envia fotos diárias" ON storage.objects
+    FOR INSERT TO authenticated
+    WITH CHECK (bucket_id = 'daily-photos' AND public.current_user_role() IN ('admin', 'staff'));
+
+DROP POLICY IF EXISTS "Equipe exclui fotos diárias" ON storage.objects;
+CREATE POLICY "Equipe exclui fotos diárias" ON storage.objects
+    FOR DELETE TO authenticated
+    USING (bucket_id = 'daily-photos' AND public.current_user_role() IN ('admin', 'staff'));
 

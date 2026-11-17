@@ -1,235 +1,201 @@
 import Link from "next/link";
-import {
-  Dog,
-  UserCheck,
-  ShieldCheck,
-  Smartphone,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  Calendar,
-  Lock
-} from "lucide-react";
-import Image from "next/image";
+import type { ReactNode } from "react";
+import { UserCheck, ShieldCheck, Smartphone, ArrowRight, CheckCircle2, Lock } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
+import { cn } from "@/lib/utils";
+
+type Portal = {
+  title: string;
+  tag: string;
+  description: ReactNode;
+  features: ReactNode[];
+  restriction: string;
+  href: string;
+  cta: string;
+  icon: ReactNode;
+  accent: {
+    border: string;
+    glow: string;
+    tag: string;
+    button: string;
+  };
+};
+
+const portals: Portal[] = [
+  {
+    title: "Monitora da Creche",
+    tag: "Operacional",
+    description: (
+      <>
+        Ambiente exclusivo para o cuidador. Restrito <strong>estritamente ao dia de hoje</strong>.
+      </>
+    ),
+    features: [
+      "Check-in e check-out com registro de horários",
+      "Alimentação, rotina, soneca e comportamento",
+      "Registros do dia (atividades e até 10 fotos por registro)",
+      "Compartilhamento direto no WhatsApp",
+    ],
+    restriction: "Sem acesso a histórico passado ou cadastros",
+    href: "/monitora/login",
+    cta: "Entrar como Monitora",
+    icon: (
+      <div className="w-14 h-14 rounded-2xl bg-brand-blue text-white flex items-center justify-center shadow-xs">
+        <UserCheck className="w-7 h-7" />
+      </div>
+    ),
+    accent: {
+      border: "border-brand-blue/40 hover:border-brand-blue",
+      glow: "bg-brand-blue/10",
+      tag: "bg-brand-blue/15 text-brand-blue-ink",
+      button: "bg-brand-blue-ink hover:bg-ink",
+    },
+  },
+  {
+    title: "Administração",
+    tag: "Gestão Total",
+    description: "Gestão completa de dados cadastrais, indicadores, histórico e equipe.",
+    features: [
+      "Cadastro e edição de pets e restrições",
+      "Cadastro de tutores e vínculos de animais",
+      "Gestão da equipe de monitores",
+      "Dashboard de ocupação e taxa de presença",
+      <>
+        Consulta a relatórios de <strong>qualquer data</strong>
+      </>,
+    ],
+    restriction: "",
+    href: "/admin/login",
+    cta: "Entrar como Administrador",
+    icon: (
+      <div className="w-14 h-14 rounded-2xl bg-ink text-white flex items-center justify-center shadow-xs">
+        <ShieldCheck className="w-7 h-7 text-brand-blue" />
+      </div>
+    ),
+    accent: {
+      border: "border-slate-300 hover:border-slate-400",
+      glow: "bg-slate-100",
+      tag: "bg-slate-100 text-slate-700",
+      button: "bg-ink hover:bg-slate-800",
+    },
+  },
+  {
+    title: "Portal do Responsável",
+    tag: "Cliente",
+    description: "Área restrita onde o responsável acompanha em tempo real o dia do pet.",
+    features: [
+      <>
+        Visualização apenas do <strong>dia atual</strong>
+      </>,
+      "Apenas os cães vinculados ao tutor",
+      "Horários de chegada, saída e alimentação",
+      "Registros do dia com fotos das atividades para download (até o final do dia)",
+    ],
+    restriction: "Sem acesso a outros cães ou histórico antigo",
+    href: "/portal",
+    cta: "Acessar Portal do Responsável",
+    icon: (
+      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-brand-pink to-brand-pink-dark text-white flex items-center justify-center shadow-xs">
+        <Smartphone className="w-7 h-7" />
+      </div>
+    ),
+    accent: {
+      border: "border-brand-pink/40 hover:border-brand-pink",
+      glow: "bg-brand-pink/10",
+      tag: "bg-brand-pink/15 text-brand-pink-ink",
+      button: "bg-brand-pink-dark hover:bg-brand-pink-ink",
+    },
+  },
+];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-[#f0f7fc] flex flex-col justify-between">
-      {/* Top Header */}
+    <div className="min-h-dvh bg-linear-to-b from-white via-slate-50 to-brand-blue-light flex flex-col justify-between">
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xs flex-shrink-0 bg-white p-0.5 border border-slate-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/icon.svg"
-                alt="Dermabichos Logo"
-                className="w-full h-full object-contain"
-              />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center gap-3">
+          <BrandLogo size="md" />
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-extrabold text-lg text-ink">Dermabichos</span>
+              <span className="bg-brand-pink/15 text-brand-pink-ink text-xs font-bold px-2 py-0.5 rounded-full">
+                Creche dos Baixinhos
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg text-[#25313B]">Dermabichos</span>
-                <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-xs font-bold px-2 py-0.5 rounded-full">
-                  Creche dos Baixinhos
-                </span>
-              </div>
-              <p className="text-[11px] text-[#5B6570]">Gestão e acompanhamento diário</p>
-            </div>
+            <p className="text-[11px] text-ink-soft">Gestão e acompanhamento diário</p>
           </div>
-
-
         </div>
       </header>
 
-      {/* Hero Header */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 text-center">
-        <div className="flex justify-center mb-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/icon.svg"
-            alt="Dermabichos Logo"
-            className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
-          />
-        </div>
-
-        <h1 className="text-3xl sm:text-5xl font-black text-[#25313B] tracking-tight max-w-2xl mx-auto leading-tight mt-1">
-          Acessos do Sistema Creche dos Baixinhos
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 text-center animate-fade-in">
+        <h1 className="text-3xl sm:text-5xl font-black text-ink tracking-tight max-w-2xl mx-auto leading-tight">
+          Acessos do Sistema <br />
+          <span className="bg-linear-to-r from-brand-pink-ink to-brand-blue-ink bg-clip-text text-transparent">
+            Creche dos Baixinhos
+          </span>
         </h1>
-
-        <p className="text-sm sm:text-base text-[#5B6570] max-w-xl mx-auto mt-2">
+        <p className="text-sm sm:text-base text-ink-soft max-w-xl mx-auto mt-3">
           Escolha seu perfil abaixo para acessar seu respectivo ambiente de trabalho ou consulta:
         </p>
       </section>
 
-      {/* 3 Portals Cards Grid */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* 1. MONITOR DA CRECHE */}
-        <div className="bg-white rounded-3xl border-2 border-[#79B7DE]/40 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-28 h-28 bg-[#79B7DE]/10 rounded-full -mr-8 -mt-8 pointer-events-none" />
-
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#79B7DE] text-white flex items-center justify-center shadow-xs">
-              <UserCheck className="w-7 h-7" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-[#25313B]">Monitora da Creche</h2>
-                <span className="bg-[#79B7DE]/15 text-[#79B7DE] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Operacional
-                </span>
-              </div>
-              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
-                Ambiente exclusivo para o cuidador. Restrito <strong>estritamente ao dia de hoje</strong>.
-              </p>
-            </div>
-
-            <ul className="space-y-2 text-xs text-[#25313B]">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Check-in e check-out com registro de horários</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Alimentação, atividades, soneca e comportamento</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Até 5 fotos por pet (retenção de 7 dias)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Compartilhamento direto no WhatsApp</span>
-              </li>
-              <li className="flex items-center gap-2 text-slate-400 italic">
-                <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Sem acesso a histórico passado ou cadastros</span>
-              </li>
-            </ul>
-          </div>
-
-          <Link
-            href="/monitora/login"
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#79B7DE] hover:bg-[#5ea4d0] shadow-xs transition-colors"
+      <section className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-16 grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+        {portals.map((portal, i) => (
+          <article
+            key={portal.href}
+            style={{ animationDelay: `${i * 70}ms` }}
+            className={cn(
+              "bg-white rounded-3xl border-2 p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between gap-6 relative overflow-hidden animate-pop-in",
+              portal.accent.border
+            )}
           >
-            <span>Entrar como Monitora</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+            <div
+              aria-hidden
+              className={cn("absolute top-0 right-0 w-28 h-28 rounded-full -mr-8 -mt-8 pointer-events-none", portal.accent.glow)}
+            />
 
-        {/* 2. ADMINISTRADOR */}
-        <div className="bg-white rounded-3xl border-2 border-slate-300 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-28 h-28 bg-slate-100 rounded-full -mr-8 -mt-8 pointer-events-none" />
-
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#25313B] text-white flex items-center justify-center shadow-xs">
-              <ShieldCheck className="w-7 h-7 text-[#79B7DE]" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-[#25313B]">Administração</h2>
-                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Gestão Total
-                </span>
+            <div className="space-y-4 relative">
+              {portal.icon}
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xl font-bold text-ink">{portal.title}</h2>
+                  <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", portal.accent.tag)}>
+                    {portal.tag}
+                  </span>
+                </div>
+                <p className="text-xs text-ink-soft mt-1.5 leading-relaxed">{portal.description}</p>
               </div>
-              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
-                Gestão completa de dados cadastrais, indicadores, histórico e equipe.
-              </p>
+
+              <ul className="space-y-2 text-xs text-ink">
+                {portal.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-px" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+                {portal.restriction && (
+                  <li className="flex items-start gap-2 text-slate-500 italic">
+                    <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-px" />
+                    <span>{portal.restriction}</span>
+                  </li>
+                )}
+              </ul>
             </div>
 
-            <ul className="space-y-2 text-xs text-[#25313B]">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Cadastro e edição de pets e restrições</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Cadastro de tutores e vínculos de animais</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Gestão da equipe de monitores</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Dashboard de ocupação e taxa de presença</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Consulta a relatórios de <strong>qualquer data</strong></span>
-              </li>
-            </ul>
-          </div>
-
-          <Link
-            href="/admin/login"
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#25313B] hover:bg-slate-800 shadow-xs transition-colors"
-          >
-            <span>Entrar como Administrador</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* 3. PORTAL DO TUTOR */}
-        <div className="bg-white rounded-3xl border-2 border-[#CD8DA7]/40 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-28 h-28 bg-[#CD8DA7]/10 rounded-full -mr-8 -mt-8 pointer-events-none" />
-
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#CD8DA7] to-[#b87791] text-white flex items-center justify-center shadow-xs">
-              <Smartphone className="w-7 h-7" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-[#25313B]">Portal do Responsável</h2>
-                <span className="bg-[#CD8DA7]/15 text-[#CD8DA7] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Cliente
-                </span>
-              </div>
-              <p className="text-xs text-[#5B6570] mt-1.5 leading-relaxed">
-                Área restrita onde o responsável acompanha em tempo real o dia do pet.
-              </p>
-            </div>
-
-            <ul className="space-y-2 text-xs text-[#25313B]">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Visualização apenas do <strong>dia atual</strong></span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Apenas os cães vinculados ao tutor</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Horários de chegada, saída e alimentação</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Fotos do dia (disponíveis até o final do dia)</span>
-              </li>
-              <li className="flex items-center gap-2 text-slate-400 italic">
-                <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Sem acesso a outros cães ou histórico antigo</span>
-              </li>
-            </ul>
-          </div>
-
-          <Link
-            href="/portal"
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs text-white bg-[#CD8DA7] hover:bg-[#b87791] shadow-xs transition-colors"
-          >
-            <span>Acessar Portal do Responsável</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+            <Link
+              href={portal.href}
+              className={cn(
+                "group w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm text-white shadow-xs transition-colors",
+                portal.accent.button
+              )}
+            >
+              <span>{portal.cta}</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </article>
+        ))}
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-[#5B6570]">
+      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-ink-soft">
         Dermabichos Creche dos Baixinhos • Desenvolvido por DMCWeb
       </footer>
     </div>
