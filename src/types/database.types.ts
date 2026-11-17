@@ -68,6 +68,8 @@ export interface StaffMember {
   user_id?: string | null;
   name: string;
   role_title: string;
+  /** Foto de perfil (Storage). Requer a migração 20261117_staff_photo.sql. */
+  photo_url?: string | null;
   active: boolean;
   created_at: string;
 }

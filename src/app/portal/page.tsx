@@ -98,11 +98,9 @@ export default function PortalPage() {
   );
 
   useEffect(() => {
-    getLoginMode().then((m) => setShowDemo(m.portalDemo)).catch(() => undefined);
-
-    // Link vindo do WhatsApp: /portal?tutor=11987654321
+    // Link vindo do WhatsApp: /portal?responsavel=11987654321 (aceita ?tutor= de links antigos)
     const params = new URLSearchParams(window.location.search);
-    const urlTutor = params.get("tutor") || params.get("phone");
+    const urlTutor = params.get("responsavel") || params.get("tutor") || params.get("phone");
     if (urlTutor) {
       // Remove o telefone da barra de endereço/histórico do navegador.
       window.history.replaceState(null, "", window.location.pathname);
@@ -110,7 +108,10 @@ export default function PortalPage() {
 
     (async () => {
       try {
+        // Os dados vêm primeiro (actions do Next rodam em fila); o modo demonstração
+        // só importa para a tela de login.
         const hasSession = await loadPortal();
+        if (!hasSession) getLoginMode().then((m) => setShowDemo(m.portalDemo)).catch(() => undefined);
         if (!hasSession && urlTutor) {
           setPhoneOrEmailInput(urlTutor);
           const failure = await signIn(urlTutor);
@@ -123,7 +124,7 @@ export default function PortalPage() {
     })();
   }, [loadPortal, signIn]);
 
-  // Atualiza os registros quando o tutor volta para a aba/app (acompanhamento ao longo do dia).
+  // Atualiza os registros quando o responsável volta para a aba/app (acompanhamento ao longo do dia).
   useEffect(() => {
     if (authState !== "authenticated") return;
     const onVisible = () => {
@@ -223,7 +224,7 @@ export default function PortalPage() {
       triggerDownload(blobUrl);
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch {
-      // Sem CORS: abre a foto em nova aba para o tutor salvar manualmente.
+      // Sem CORS: abre a foto em nova aba para o responsável salvar manualmente.
       window.open(url, "_blank", "noopener,noreferrer");
     } finally {
       setDownloadingPhotoId(null);
@@ -264,7 +265,7 @@ export default function PortalPage() {
   }
 
   // -------------------------------------------------------------
-  // TELA DE LOGIN DO PORTAL DO TUTOR
+  // TELA DE LOGIN DO PORTAL DO RESPONSÁVEL
   // -------------------------------------------------------------
   if (authState !== "authenticated" || !portal) {
     return (
@@ -326,7 +327,7 @@ export default function PortalPage() {
           {/* Dica para teste rápido de demonstração (somente fora de produção) */}
           {showDemo && (
           <div className="pt-2 border-t border-slate-100 text-center">
-            <p className="text-[11px] text-slate-400 mb-1.5 font-medium">Clique para testar com um tutor cadastrado:</p>
+            <p className="text-[11px] text-slate-400 mb-1.5 font-medium">Clique para testar com um responsável cadastrado:</p>
             <div className="flex flex-wrap justify-center gap-1.5 text-[11px]">
               <button
                 type="button"
@@ -407,7 +408,7 @@ export default function PortalPage() {
           </div>
         </div>
 
-        {/* Seletor de Cão se o tutor tiver mais de um */}
+        {/* Seletor de Cão se o responsável tiver mais de um */}
         {pets.length > 1 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <span className="text-xs font-semibold text-ink-soft">Seus cães:</span>

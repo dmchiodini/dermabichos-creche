@@ -9,7 +9,7 @@ export type SessionRole = "admin" | "staff" | "guardian";
 
 export interface SessionPayload {
   role: SessionRole;
-  /** Nome exibido na interface (monitora, administrador ou tutor). */
+  /** Nome exibido na interface (monitora, administrador ou responsável). */
   name: string;
   /** ID do responsável — presente apenas em sessões do portal. */
   guardianId?: string;

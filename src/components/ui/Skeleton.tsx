@@ -1,7 +1,11 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Bloco "fantasma" de carregamento. É um <span> com display block para poder ser
+ * usado tanto em layouts quanto dentro de textos (<p>), onde <div> é HTML inválido.
+ */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn("animate-pulse rounded-xl bg-slate-200/70", className)} />;
+  return <span aria-hidden className={cn("block animate-pulse rounded-xl bg-slate-200/70", className)} />;
 }
 
 /** Grade de cartões "fantasma" exibida enquanto os dados carregam. */

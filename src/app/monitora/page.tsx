@@ -5,20 +5,15 @@ import { useRouter } from "next/navigation";
 import { formatDateBR, formatTimeBR } from "@/lib/date-utils";
 import { useTodayDate } from "@/lib/use-today";
 import {
-  getPets,
-  getAttendanceByDate,
+  getMonitoraData,
   updateAttendance,
-  getDailyReportsByDate,
   saveDailyReport,
-  getGuardiansByPet,
-  getDailyActivityLogs,
   saveDailyActivityLog,
   deleteDailyActivityLog,
   addDailyActivityPhoto,
   removeDailyActivityPhoto,
-  getActivityTemplates
 } from "@/services/db-service";
-import { getSessionInfo, logout } from "@/services/auth-actions";
+import { logout } from "@/services/auth-actions";
 import { unwrap, errorMessage } from "@/lib/action-result";
 import {
   Pet,
@@ -103,25 +98,24 @@ export default function MonitoraPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [petToShare, setPetToShare] = useState<Pet | null>(null);
 
-  // Inicialização: sessão vem do servidor (cookie HTTP-only), não do localStorage
+  // Inicialização: sessão vem do servidor (cookie HTTP-only), não do localStorage.
+  // O nome de quem está logado chega junto com os dados, na mesma requisição.
   useEffect(() => {
-    getSessionInfo("staff")
-      .then(async (s) => s || (await getSessionInfo("admin")))
-      .then((s) => setMonitorName(s?.name || "Equipe"))
-      .catch(() => setMonitorName("Equipe"));
-
     async function loadTodayData() {
       if (!todayDate) return;
       try {
-        // Tudo em paralelo: 6 consultas no total (antes: 4 + 2 por pet, em sequência).
-        const [allPets, attList, dayReports, guardMap, logs, tpls] = await Promise.all([
-          unwrap(getPets()),
-          unwrap(getAttendanceByDate(todayDate)),
-          unwrap(getDailyReportsByDate(todayDate)),
-          unwrap(getGuardiansByPet()),
-          unwrap(getDailyActivityLogs(todayDate)),
-          unwrap(getActivityTemplates(true)),
-        ]);
+        // Uma única ida ao servidor: as 6 consultas rodam em paralelo lá
+        // (Server Actions chamadas do navegador são enfileiradas pelo Next.js).
+        const {
+          viewerName,
+          pets: allPets,
+          attendance: attList,
+          reports: dayReports,
+          guardiansByPet: guardMap,
+          activityLogs: logs,
+          templates: tpls,
+        } = await unwrap(getMonitoraData(todayDate));
+        setMonitorName(viewerName || "Equipe");
 
         const activePets = allPets.filter(p => p.status === "active");
         const activeIds = new Set(activePets.map(p => p.id));
@@ -133,6 +127,7 @@ export default function MonitoraPage() {
         setActivityTemplates(tpls);
       } catch (err) {
         toast.error(errorMessage(err, "Erro ao carregar a rotina de hoje."));
+        setMonitorName(prev => prev || "Equipe");
       } finally {
         setLoading(false);
       }
@@ -220,7 +215,7 @@ export default function MonitoraPage() {
         return [...prev, saved];
       });
 
-      toast.success(editingActivityId ? "Registro atualizado!" : "Registro publicado para os tutores!");
+      toast.success(editingActivityId ? "Registro atualizado!" : "Registro publicado para os responsáveis!");
       setActivityModalOpen(false);
       resetActivityForm();
     } catch (err: unknown) {
@@ -233,7 +228,7 @@ export default function MonitoraPage() {
   const handleDeleteActivity = async (log: DailyActivityLog) => {
     const ok = await confirm({
       title: "Excluir este registro?",
-      message: <>O registro <strong>{log.title}</strong> e suas {log.photos?.length || 0} foto(s) serão removidos do portal dos tutores.</>,
+      message: <>O registro <strong>{log.title}</strong> e suas {log.photos?.length || 0} foto(s) serão removidos do portal dos responsáveis.</>,
       confirmLabel: "Excluir registro",
       danger: true,
     });
@@ -554,7 +549,7 @@ export default function MonitoraPage() {
                   </span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-ink-soft mt-0.5 leading-snug">
-                  Crie atividades com fotos para os tutores baixarem até o encerramento do dia.
+                  Crie atividades com fotos para os responsáveis baixarem até o encerramento do dia.
                 </p>
               </div>
 
@@ -1021,7 +1016,7 @@ export default function MonitoraPage() {
                 <div className="bg-brand-blue/10 border border-brand-blue/30 rounded-xl p-2.5 flex items-start gap-2">
                   <Camera className="w-4 h-4 text-brand-blue-ink shrink-0 mt-0.5" />
                   <p className="text-[11px] text-ink">
-                    As fotos das atividades ficam reunidas na aba <strong>&quot;Registros do Dia&quot;</strong>, disponíveis para todos os tutores baixarem até o encerramento do dia!
+                    As fotos das atividades ficam reunidas na aba <strong>&quot;Registros do Dia&quot;</strong>, disponíveis para todos os responsáveis baixarem até o encerramento do dia!
                   </p>
                 </div>
 
@@ -1136,7 +1131,7 @@ export default function MonitoraPage() {
 
                 {/* Observações Livres */}
                 <div className="space-y-1">
-                  <label className="font-bold text-ink">Recadinho para o Tutor:</label>
+                  <label className="font-bold text-ink">Recadinho para o Responsável:</label>
                   <textarea
                     rows={2}
                     placeholder="Informações adicionais para enviar no WhatsApp..."

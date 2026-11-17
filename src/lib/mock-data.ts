@@ -42,7 +42,7 @@ export const initialMockPets: Pet[] = [
     approximate_age: "4 anos",
     size: "grande",
     temperament: "Amorosa, tranquila, sociável e carinhosa.",
-    diet_restrictions: "Ração padrão fornecida pela tutora às 12h.",
+    diet_restrictions: "Ração padrão fornecida pela responsável às 12h.",
     care_notes: "Toma água em pausas controladas após corrida.",
     status: "active",
     created_at: "2026-10-29T08:00:00Z",
@@ -90,7 +90,7 @@ export const initialMockGuardians: Guardian[] = [
     full_name: "Carlos Eduardo Santos",
     phone: "11991234567",
     email: "carlos.edu@exemplo.com",
-    notes: "Tutor da Pipoca. Autorizou fotos diárias.",
+    notes: "Responsável pela Pipoca. Autorizou fotos diárias.",
     created_at: "2026-10-29T08:00:00Z",
   },
   {
@@ -98,7 +98,7 @@ export const initialMockGuardians: Guardian[] = [
     full_name: "Renata Oliveira",
     phone: "11976543210",
     email: "renata.oliver@exemplo.com",
-    notes: "Tutora da Mel e do Bob.",
+    notes: "Responsável pela Mel e pelo Bob.",
     created_at: "2026-10-29T08:00:00Z",
   }
 ];

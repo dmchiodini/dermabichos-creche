@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  getGuardians,
-  saveGuardian,
-  getPets,
-  linkGuardianToPet
-} from "@/services/db-service";
+import { getRegistryData, saveGuardian } from "@/services/db-service";
 import { unwrap, errorMessage } from "@/lib/action-result";
 import { Guardian, Pet } from "@/types/database.types";
 import { Modal } from "@/components/ui/Modal";
@@ -20,7 +15,8 @@ import {
   Mail,
   Edit3,
   MessageSquare,
-  Loader2
+  Loader2,
+  Dog
 } from "lucide-react";
 
 /** Monta o link do WhatsApp com DDI 55 apenas quando ainda não estiver presente. */
@@ -40,14 +36,17 @@ export default function ResponsaveisPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingGuardian, setEditingGuardian] = useState<Partial<Guardian> | null>(null);
-  const [selectedPetIdToLink, setSelectedPetIdToLink] = useState("");
+  const [guardiansByPet, setGuardiansByPet] = useState<Record<string, Guardian[]>>({});
 
   useEffect(() => {
     async function load() {
       try {
-        const [allGuardians, allPets] = await Promise.all([unwrap(getGuardians()), unwrap(getPets())]);
+        // Uma única ida ao servidor (as consultas rodam em paralelo lá).
+        const { guardians: allGuardians, pets: allPets, guardiansByPet: map } =
+          await unwrap(getRegistryData());
         setGuardians(allGuardians);
         setPets(allPets);
+        setGuardiansByPet(map);
       } catch (err) {
         toast.error(errorMessage(err, "Erro ao carregar responsáveis."));
       } finally {
@@ -64,13 +63,11 @@ export default function ResponsaveisPage() {
       email: "",
       notes: "",
     });
-    setSelectedPetIdToLink("");
     setModalOpen(true);
   };
 
   const handleOpenEdit = (g: Guardian) => {
     setEditingGuardian({ ...g });
-    setSelectedPetIdToLink("");
     setModalOpen(true);
   };
 
@@ -88,10 +85,6 @@ export default function ResponsaveisPage() {
     try {
       setIsSaving(true);
       const saved = await unwrap(saveGuardian(editingGuardian));
-
-      if (selectedPetIdToLink) {
-        await unwrap(linkGuardianToPet(selectedPetIdToLink, saved.id));
-      }
 
       setGuardians(prev => {
         const idx = prev.findIndex(g => g.id === saved.id);
@@ -113,6 +106,15 @@ export default function ResponsaveisPage() {
     }
   };
 
+  /** Cães de cada responsável (o vínculo é feito no cadastro do pet). */
+  const petsByGuardian = useMemo(() => {
+    const result: Record<string, Pet[]> = {};
+    for (const pet of pets) {
+      for (const g of guardiansByPet[pet.id] || []) (result[g.id] ||= []).push(pet);
+    }
+    return result;
+  }, [pets, guardiansByPet]);
+
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const digits = term.replace(/\D/g, "");
@@ -130,7 +132,7 @@ export default function ResponsaveisPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">Responsáveis & Tutores</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-ink">Responsáveis</h1>
             <span className="bg-brand-blue/15 text-brand-blue-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {guardians.length} cadastrados
             </span>
@@ -214,6 +216,8 @@ export default function ResponsaveisPage() {
                     {g.notes}
                   </div>
                 )}
+
+                <LinkedPets pets={petsByGuardian[g.id] || []} />
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -306,22 +310,14 @@ export default function ResponsaveisPage() {
                 />
               </div>
 
-              {/* Vincular com Pet */}
-              <div className="space-y-1 border-t border-slate-100 pt-3">
-                <label className="font-bold text-ink">Vincular a um Cão:</label>
-                <select
-                  value={selectedPetIdToLink}
-                  onChange={(e) => setSelectedPetIdToLink(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                >
-                  <option value="">Selecione um cão (ou vincule depois)</option>
-                  {pets.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.breed || "SRD"})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {editingGuardian.id && (
+                <div className="border-t border-slate-100 pt-3 space-y-1">
+                  <LinkedPets pets={petsByGuardian[editingGuardian.id] || []} />
+                  <p className="text-[11px] text-ink-soft">
+                    Para vincular ou desvincular cães, edite o cadastro do pet na aba Pets.
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
@@ -347,3 +343,27 @@ export default function ResponsaveisPage() {
   );
 }
 
+function LinkedPets({ pets }: { pets: Pet[] }) {
+  return (
+    <div className="space-y-1.5">
+      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+        Cães vinculados
+      </span>
+      {pets.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {pets.map((p) => (
+            <span
+              key={p.id}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-brand-pink/10 text-brand-pink-ink font-semibold"
+            >
+              <Dog className="w-3 h-3" />
+              {p.name}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400 italic">Nenhum cão vinculado.</p>
+      )}
+    </div>
+  );
+}

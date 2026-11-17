@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Pet } from "@/types/database.types";
 import { cn } from "@/lib/utils";
 
@@ -14,13 +16,18 @@ const sizeClasses = {
 };
 
 export function PetAvatar({ pet, size = "md" }: PetAvatarProps) {
-  if (pet.photo_url) {
+  // Foto com link quebrado cai para a inicial, em vez do texto alternativo.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  if (pet.photo_url && failedSrc !== pet.photo_url) {
+    const src = pet.photo_url;
     return (
       <div className={cn("relative rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200", sizeClasses[size])}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={pet.photo_url}
+          src={src}
           alt={pet.name || "Pet"}
+          onError={() => setFailedSrc(src)}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"

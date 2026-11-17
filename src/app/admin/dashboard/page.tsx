@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  getPets,
-  getAttendanceByDate,
-  getDailyReportsByDate,
-} from "@/services/db-service";
+import { getDashboardData } from "@/services/db-service";
 import { unwrap, errorMessage } from "@/lib/action-result";
 import { useTodayDate } from "@/lib/use-today";
 import { Pet, Attendance, DailyReport } from "@/types/database.types";
@@ -40,12 +36,9 @@ export default function DashboardPage() {
     async function load() {
       setLoading(true);
       try {
-        // 3 consultas em paralelo (antes: sequenciais, com 1 consulta extra por pet).
-        const [allPets, attList, dayReports] = await Promise.all([
-          unwrap(getPets()),
-          unwrap(getAttendanceByDate(selectedDate)),
-          unwrap(getDailyReportsByDate(selectedDate)),
-        ]);
+        // Uma única ida ao servidor (as consultas rodam em paralelo lá).
+        const { pets: allPets, attendance: attList, reports: dayReports } =
+          await unwrap(getDashboardData(selectedDate));
         if (cancelled) return;
         const activePets = allPets.filter(p => p.status === "active");
         const activeIds = new Set(activePets.map(p => p.id));

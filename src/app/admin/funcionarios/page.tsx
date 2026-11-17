@@ -7,6 +7,8 @@ import { StaffMember } from "@/types/database.types";
 import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
+import { ProfilePhotoField } from "@/components/ProfilePhotoField";
+import { PetAvatar } from "@/components/PetAvatar";
 import {
   UserCheck,
   Plus,
@@ -133,9 +135,7 @@ export default function FuncionariosPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-linear-to-br from-brand-pink/30 to-brand-blue/30 flex items-center justify-center text-ink font-bold text-sm">
-                    {member.name.charAt(0).toUpperCase()}
-                  </div>
+                  <PetAvatar pet={{ name: member.name, photo_url: member.photo_url }} size="md" />
                   <div>
                     <h3 className="font-bold text-base text-ink leading-tight">{member.name}</h3>
                     <p className="text-xs text-ink-soft">{member.role_title}</p>
@@ -186,6 +186,14 @@ export default function FuncionariosPage() {
       >
         {editingStaff && (
             <form onSubmit={handleSave} className="p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
+              <ProfilePhotoField
+                photoUrl={editingStaff.photo_url}
+                name={editingStaff.name}
+                kind="person"
+                disabled={isSaving}
+                onChange={(photo_url) => setEditingStaff(prev => ({ ...prev, photo_url }))}
+              />
+
               <div className="space-y-1">
                 <label className="font-bold text-ink">Nome Completo *</label>
                 <input

@@ -16,8 +16,8 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.guardians (id, full_name, phone, email, notes)
 VALUES
     ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Mariana Silva', '(11) 98765-4321', 'mariana.silva@exemplo.com', 'Mãe do Thor. Prefere contato via WhatsApp.'),
-    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Carlos Eduardo', '(11) 99123-4567', 'carlos.edu@exemplo.com', 'Tutor da Pipoca. Autoriza fotos no Instagram.'),
-    ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Renata Oliveira', '(11) 97654-3210', 'renata.oliver@exemplo.com', 'Tutora da Mel e do Bob.')
+    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Carlos Eduardo', '(11) 99123-4567', 'carlos.edu@exemplo.com', 'Responsável pela Pipoca. Autoriza fotos no Instagram.'),
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Renata Oliveira', '(11) 97654-3210', 'renata.oliver@exemplo.com', 'Responsável pela Mel e pelo Bob.')
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. Vínculo Pets e Responsáveis

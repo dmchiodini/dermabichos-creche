@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s · Dermabichos",
   },
   description:
-    "Sistema de acompanhamento diário, rotina, relatórios e portal dos tutores da creche canina Dermabichos",
+    "Sistema de acompanhamento diário, rotina, relatórios e portal dos responsáveis da creche canina Dermabichos",
   applicationName: "Dermabichos Creche",
   // Sistema interno: não deve aparecer em buscadores.
   robots: { index: false, follow: false },
@@ -32,7 +32,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={nunito.variable}>
-      <body className="min-h-dvh flex flex-col bg-slate-50 text-ink">
+      {/* Extensões do navegador (ex.: ColorZilla) injetam atributos no <body>; ignora só isso. */}
+      <body className="min-h-dvh flex flex-col bg-slate-50 text-ink" suppressHydrationWarning>
         <FeedbackProvider>
           <div className="flex-1 flex flex-col">{children}</div>
         </FeedbackProvider>

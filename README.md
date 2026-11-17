@@ -26,20 +26,20 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 - **Fechamento Diário:** painel instantâneo com contagem de pets presentes, relatórios concluídos e pendências.
 - **Compartilhamento WhatsApp:** gera mensagem pré-formatada com o resumo dos fatos reais do dia e link direto para o Portal do Responsável.
 
-### 2. Portal do Tutor / Responsável (`/portal`)
+### 2. Portal do Responsável (`/portal`)
 - Área exclusiva, responsiva e com acesso protegido por autenticação.
-- **Regra estrita de privacidade:** o tutor visualiza **apenas as informações do dia atual** (`America/Sao_Paulo`) dos seus próprios cães vinculados.
+- **Regra estrita de privacidade:** o responsável visualiza **apenas as informações do dia atual** (`America/Sao_Paulo`) dos seus próprios cães vinculados.
 - Não exibe histórico passado, notas internas ou dados de outros animais.
-- Seletor de pets caso o tutor possua mais de um animal cadastrado (ex.: Mel e Bob).
+- Seletor de pets caso o responsável possua mais de um animal cadastrado (ex.: Mel e Bob).
 
 ### 3. Gestão Cadastral Completa
-- **Pets (`/admin/pets`):** Cadastro com porte, raça, foto, temperamento, restrições alimentares, alergias e vínculo com tutores. *(Sem módulos desnecessários de vacinas, conforme o escopo do MVP)*.
+- **Pets (`/admin/pets`):** Cadastro com raça, foto, temperamento, restrições alimentares, alergias e vínculo com responsáveis. *(Sem módulos desnecessários de vacinas, conforme o escopo do MVP)*.
 - **Responsáveis (`/admin/responsaveis`):** Gestão de dados de contato, WhatsApp e múltiplos cães vinculados.
 - **Equipe (`/admin/funcionarios`):** Cadastro de monitores, ativação e desativação segura sem apagar o histórico de auditoria.
 
 ### 4. Dashboard de Indicadores (`/admin/dashboard`)
 - Taxa de presença por data e ocupação em relação à capacidade de referência da unidade.
-- Percentual de relatórios finalizados e compartilhados com tutores.
+- Percentual de relatórios finalizados e compartilhados com responsáveis.
 - Indicadores de apetite e engajamento nas atividades.
 
 ### 5. Histórico e Retenção de Fotos (`/admin/historico`)
@@ -62,7 +62,7 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 - **Sessões no servidor:** login gera um cookie `HttpOnly` assinado (HMAC-SHA256), um por área (admin, monitora, portal).
 - **`src/proxy.ts`** bloqueia `/admin/*` e `/monitora` sem sessão válida.
 - **`src/services/db-service.ts`** é a fronteira de segurança: toda leitura/escrita é uma Server Action que valida papel e entrada (zod). O navegador **não** acessa o Supabase diretamente.
-- **Regras garantidas no servidor:** monitora só opera o dia de hoje; portal só recebe os pets do próprio tutor, sem notas internas.
+- **Regras garantidas no servidor:** monitora só opera o dia de hoje; portal só recebe os pets do próprio responsável, sem notas internas.
 - **Portal sem senha** (regra do produto): busca por telefone/e-mail com correspondência exata e limite de tentativas.
 
 ### Variáveis de ambiente (`.env.local`)
@@ -88,9 +88,9 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
    - Restrição e trigger de até 5 fotos por relatório diário.
    - Criação do bucket `daily-photos` (leitura pública, escrita apenas da equipe).
    - Rotina SQL idempotente `cleanup_expired_daily_photos()` com agendamento `pg_cron` para exclusão automática após 7 dias.
-   - Políticas RLS completas garantindo que tutores acessem apenas dados do dia atual dos seus próprios pets.
+   - Políticas RLS completas garantindo que responsáveis acessem apenas dados do dia atual dos seus próprios pets.
 3. **Banco já existente?** Execute também [`supabase/migrations/20261117_security_hardening.sql`](./supabase/migrations/20261117_security_hardening.sql) (cria `activity_templates` e fecha o Storage, que permitia upload/exclusão anônimos).
-4. (Opcional) Execute o arquivo [`supabase/seed.sql`](./supabase/seed.sql) para inserir pets e tutores de teste.
+4. (Opcional) Execute o arquivo [`supabase/seed.sql`](./supabase/seed.sql) para inserir pets e responsáveis de teste.
 
 ---
 

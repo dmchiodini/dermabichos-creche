@@ -131,22 +131,30 @@ function storagePathFromUrl(url: string | null | undefined): string | null {
   return url && idx >= 0 ? decodeURIComponent(url.slice(idx + marker.length).split("?")[0]) : null;
 }
 
+/**
+ * Foto de perfil (pet ou equipe): imagem enviada do computador/celular sobe para o
+ * Storage e só a URL é guardada; ao trocar ou remover, apaga a anterior (se era nossa).
+ */
+async function resolveProfilePhoto(
+  folder: string,
+  incoming: string | null | undefined,
+  previous: string | null | undefined
+): Promise<string | null> {
+  let photoUrl = sanitizeImageUrl(incoming);
+  if (photoUrl && DATA_URL_RE.test(photoUrl)) {
+    photoUrl = (await storePhoto(folder, photoUrl)).storage_url;
+  }
+  const previousPath = storagePathFromUrl(previous);
+  if (previousPath && previous !== photoUrl) await removeStoredFiles([previousPath]);
+  return photoUrl;
+}
+
 export async function savePet(pet: Partial<Pet>): Promise<Pet> {
   const id = pet.id || crypto.randomUUID();
   const now = new Date().toISOString();
 
-  // Foto enviada do computador/celular: sobe para o Storage e guarda só a URL.
-  let photoUrl = sanitizeImageUrl(pet.photo_url);
-  if (photoUrl && DATA_URL_RE.test(photoUrl)) {
-    photoUrl = (await storePhoto(`pets/${id}`, photoUrl)).storage_url;
-  }
-
-  // Ao trocar ou remover a foto, apaga a anterior do Storage (se era nossa).
-  if (pet.id) {
-    const previous = (await getPetById(pet.id))?.photo_url;
-    const previousPath = storagePathFromUrl(previous);
-    if (previousPath && previous !== photoUrl) await removeStoredFiles([previousPath]);
-  }
+  const previousPhoto = pet.id ? (await getPetById(pet.id))?.photo_url : null;
+  const photoUrl = await resolveProfilePhoto(`pets/${id}`, pet.photo_url, previousPhoto);
 
   const payload: Pet = {
     id,
@@ -208,7 +216,7 @@ export async function saveGuardian(guardian: Partial<Guardian>): Promise<Guardia
   if (supabase) {
     const { data, error } = await supabase.from("guardians").upsert(payload).select().single();
     if (!error && data) return data as Guardian;
-    console.error("Erro ao salvar tutor no Supabase:", error?.message);
+    console.error("Erro ao salvar responsável no Supabase:", error?.message);
   }
 
   upsertInMemory(mem.guardians, (g) => g.id === id, { ...mem.guardians.find((g) => g.id === id), ...payload });
@@ -226,20 +234,47 @@ async function getPetGuardianLinks(): Promise<PetGuardianLink[]> {
   return mem.petGuardians;
 }
 
-export async function linkGuardianToPet(petId: string, guardianId: string, relationship = "Tutor"): Promise<void> {
+/**
+ * Define o conjunto completo de responsáveis de um pet (feito no cadastro do pet):
+ * remove os vínculos que saíram e cria os novos, preservando os que já existiam.
+ * Um mesmo responsável pode estar vinculado a vários pets.
+ */
+export async function setPetGuardians(petId: string, guardianIds: string[]): Promise<void> {
+  const wanted = Array.from(new Set(guardianIds));
   const supabase = db();
   if (supabase) {
-    const { error } = await supabase
+    const { data: current, error: readError } = await supabase
       .from("pet_guardians")
-      .upsert(
-        { pet_id: petId, guardian_id: guardianId, relationship, is_primary: true },
-        { onConflict: "pet_id,guardian_id" }
-      );
-    if (error) console.error("Erro ao vincular tutor ao pet:", error.message);
+      .select("guardian_id")
+      .eq("pet_id", petId);
+    if (readError) throw new Error(`Erro ao ler vínculos do pet: ${readError.message}`);
+
+    const existing = new Set((current ?? []).map((row) => row.guardian_id as string));
+    const toRemove = [...existing].filter((gid) => !wanted.includes(gid));
+    const toAdd = wanted.filter((gid) => !existing.has(gid));
+
+    if (toRemove.length > 0) {
+      const { error } = await supabase.from("pet_guardians").delete().eq("pet_id", petId).in("guardian_id", toRemove);
+      if (error) throw new Error(`Erro ao remover vínculo: ${error.message}`);
+    }
+    if (toAdd.length > 0) {
+      const rows = toAdd.map((gid) => ({
+        pet_id: petId,
+        guardian_id: gid,
+        relationship: "Responsável",
+        is_primary: existing.size === 0 && gid === wanted[0],
+      }));
+      const { error } = await supabase.from("pet_guardians").insert(rows);
+      if (error) throw new Error(`Erro ao vincular responsável: ${error.message}`);
+    }
   }
-  if (!mem.petGuardians.some((pg) => pg.pet_id === petId && pg.guardian_id === guardianId)) {
-    mem.petGuardians.push({ pet_id: petId, guardian_id: guardianId, relationship, is_primary: true });
+
+  const kept = mem.petGuardians.filter((pg) => pg.pet_id !== petId || wanted.includes(pg.guardian_id));
+  const keptIds = new Set(kept.filter((pg) => pg.pet_id === petId).map((pg) => pg.guardian_id));
+  for (const gid of wanted) {
+    if (!keptIds.has(gid)) kept.push({ pet_id: petId, guardian_id: gid, relationship: "Responsável", is_primary: keptIds.size === 0 });
   }
+  mem.petGuardians = kept;
 }
 
 /** Mapa petId → responsáveis, com 2 consultas no total (antes: 1 por pet). */
@@ -297,6 +332,15 @@ export async function getStaffMembers(): Promise<StaffMember[]> {
   return mem.staff;
 }
 
+async function getStaffMemberById(id: string): Promise<StaffMember | null> {
+  const supabase = db();
+  if (supabase) {
+    const { data, error } = await supabase.from("staff_members").select("*").eq("id", id).maybeSingle();
+    if (!error && data) return data as StaffMember;
+  }
+  return mem.staff.find((s) => s.id === id) ?? null;
+}
+
 export async function saveStaffMember(member: Partial<StaffMember>): Promise<StaffMember> {
   const id = member.id || crypto.randomUUID();
   const payload: StaffMember = {
@@ -307,15 +351,28 @@ export async function saveStaffMember(member: Partial<StaffMember>): Promise<Sta
     created_at: member.created_at || new Date().toISOString(),
   };
 
+  // A foto só entra no payload quando foi informada (ou removida): assim, bancos
+  // ainda sem a coluna photo_url continuam salvando nome/cargo/status normalmente.
+  if (member.photo_url !== undefined) {
+    const previous = member.id ? (await getStaffMemberById(member.id))?.photo_url : null;
+    payload.photo_url = await resolveProfilePhoto(`staff/${id}`, member.photo_url, previous);
+  }
+
   const supabase = db();
   if (supabase) {
     const { data, error } = await supabase.from("staff_members").upsert(payload).select().single();
     if (!error && data) return data as StaffMember;
+    if (error && /photo_url/.test(error.message)) {
+      throw new UserError(
+        "O banco ainda não tem o campo de foto da equipe. Rode a migração supabase/migrations/20261117_staff_photo.sql no Supabase."
+      );
+    }
     console.error("Erro ao salvar funcionário no Supabase:", error?.message);
   }
 
-  upsertInMemory(mem.staff, (s) => s.id === id, { ...mem.staff.find((s) => s.id === id), ...payload });
-  return payload;
+  const merged = { ...mem.staff.find((s) => s.id === id), ...payload };
+  upsertInMemory(mem.staff, (s) => s.id === id, merged);
+  return merged;
 }
 
 // -------------------------------------------------------------

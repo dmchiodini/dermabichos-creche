@@ -65,7 +65,7 @@ export function WhatsAppShareModal({
     const portalBase =
       typeof window !== "undefined" ? `${window.location.origin}/portal` : "https://dermabichos.vercel.app/portal";
     const portalUrlWithParam = selectedGuardian?.phone
-      ? `${portalBase}?tutor=${selectedGuardian.phone.replace(/\D/g, "")}`
+      ? `${portalBase}?responsavel=${selectedGuardian.phone.replace(/\D/g, "")}`
       : portalBase;
 
     return `🐾 *Dermabichos Creche dos Baixinhos* - Resumo do Dia

@@ -57,7 +57,7 @@ const portals: Portal[] = [
     description: "Gestão completa de dados cadastrais, indicadores, histórico e equipe.",
     features: [
       "Cadastro e edição de pets e restrições",
-      "Cadastro de tutores e vínculos de animais",
+      "Cadastro de responsáveis e vínculos de animais",
       "Gestão da equipe de monitores",
       "Dashboard de ocupação e taxa de presença",
       <>
@@ -87,7 +87,7 @@ const portals: Portal[] = [
       <>
         Visualização apenas do <strong>dia atual</strong>
       </>,
-      "Apenas os cães vinculados ao tutor",
+      "Apenas os cães vinculados ao responsável",
       "Horários de chegada, saída e alimentação",
       "Registros do dia com fotos das atividades para download (até o final do dia)",
     ],

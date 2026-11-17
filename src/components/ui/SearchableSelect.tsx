@@ -4,10 +4,17 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { normalizeSearch } from "@/lib/dog-breeds";
 
+/** Opção simples (texto = valor) ou com rótulo e descrição próprios. */
+export type SelectOption = string | { value: string; label: string; hint?: string };
+
+type NormalizedOption = { value: string; label: string; hint?: string };
+
+const normalizeOption = (o: SelectOption): NormalizedOption => (typeof o === "string" ? { value: o, label: o } : o);
+
 interface SearchableSelectProps {
   label: string;
   value: string;
-  options: string[];
+  options: SelectOption[];
   onChange: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
@@ -39,27 +46,29 @@ export function SearchableSelect({
   const [active, setActive] = useState(0);
 
   // Cadastros antigos podem ter uma raça fora da lista: mantém visível como opção.
-  const allOptions = useMemo(
-    () => (value && !options.includes(value) ? [value, ...options] : options),
-    [value, options]
-  );
+  const allOptions = useMemo(() => {
+    const list = options.map(normalizeOption);
+    return value && !list.some((o) => o.value === value) ? [{ value, label: value }, ...list] : list;
+  }, [value, options]);
+
+  const selectedLabel = allOptions.find((o) => o.value === value)?.label ?? "";
 
   const filtered = useMemo(() => {
     const q = normalizeSearch(query);
-    return q ? allOptions.filter((o) => normalizeSearch(o).includes(q)) : allOptions;
+    return q ? allOptions.filter((o) => normalizeSearch(`${o.label} ${o.hint ?? ""}`).includes(q)) : allOptions;
   }, [allOptions, query]);
 
   const openList = () => {
     if (disabled) return;
     setQuery("");
-    setActive(Math.max(0, allOptions.indexOf(value)));
+    setActive(Math.max(0, allOptions.findIndex((o) => o.value === value)));
     setOpen(true);
   };
 
   const close = () => setOpen(false);
 
-  const select = (option: string) => {
-    onChange(option);
+  const select = (option: NormalizedOption) => {
+    onChange(option.value);
     close();
   };
 
@@ -115,7 +124,7 @@ export function SearchableSelect({
         aria-controls={listId}
         className="w-full flex items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-left disabled:opacity-60 cursor-pointer"
       >
-        <span className={`truncate ${value ? "text-ink" : "text-slate-400"}`}>{value || placeholder}</span>
+        <span className={`truncate ${value ? "text-ink" : "text-slate-400"}`}>{selectedLabel || placeholder}</span>
         <span className="flex items-center gap-1 shrink-0">
           {value && !disabled && (
             <span
@@ -163,10 +172,10 @@ export function SearchableSelect({
               <li className="px-3 py-3 text-center text-ink-soft">{emptyMessage}</li>
             ) : (
               filtered.map((option, index) => {
-                const selected = option === value;
+                const selected = option.value === value;
                 return (
                   <li
-                    key={option}
+                    key={option.value}
                     id={`${id}-opt-${index}`}
                     data-index={index}
                     role="option"
@@ -177,7 +186,10 @@ export function SearchableSelect({
                       index === active ? "bg-brand-blue/10" : ""
                     } ${selected ? "font-bold text-brand-blue-ink" : "text-ink"}`}
                   >
-                    <span>{option}</span>
+                    <span className="min-w-0">
+                      <span className="block truncate">{option.label}</span>
+                      {option.hint && <span className="block text-[11px] font-normal text-ink-soft truncate">{option.hint}</span>}
+                    </span>
                     {selected && <Check className="w-4 h-4 shrink-0" />}
                   </li>
                 );

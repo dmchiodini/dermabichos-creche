@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  getPets,
-  getAttendanceByDate,
-  getDailyReportsByDate,
-  getDailyActivityLogs
-} from "@/services/db-service";
+import { getHistoryData } from "@/services/db-service";
 import { unwrap, errorMessage } from "@/lib/action-result";
 import { formatDateBR, formatTimeBR } from "@/lib/date-utils";
 import { useTodayDate } from "@/lib/use-today";
@@ -53,12 +48,9 @@ export default function HistoricoPage() {
     async function load() {
       setLoading(true);
       try {
-        const [allPets, attList, dayReports, logs] = await Promise.all([
-          unwrap(getPets()),
-          unwrap(getAttendanceByDate(selectedDate)),
-          unwrap(getDailyReportsByDate(selectedDate)),
-          unwrap(getDailyActivityLogs(selectedDate)),
-        ]);
+        // Uma única ida ao servidor (as consultas rodam em paralelo lá).
+        const { pets: allPets, attendance: attList, reports: dayReports, activityLogs: logs } =
+          await unwrap(getHistoryData(selectedDate));
         if (cancelled) return;
         setPets(allPets);
         setAttendance(attList);

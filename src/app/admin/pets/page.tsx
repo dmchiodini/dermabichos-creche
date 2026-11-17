@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  getPets,
+  getRegistryData,
   savePet,
-  getGuardians,
-  getGuardiansByPet,
-  linkGuardianToPet
+  setPetGuardians
 } from "@/services/db-service";
 import { unwrap, errorMessage } from "@/lib/action-result";
 import { Pet, Guardian, PetStatus } from "@/types/database.types";
@@ -14,7 +12,7 @@ import { PetAvatar } from "@/components/PetAvatar";
 import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
-import { PetPhotoField } from "@/components/PetPhotoField";
+import { ProfilePhotoField } from "@/components/ProfilePhotoField";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { DOG_BREEDS } from "@/lib/dog-breeds";
 import {
@@ -25,7 +23,9 @@ import {
   Utensils,
   ShieldAlert,
   Phone,
-  Loader2
+  Loader2,
+  X,
+  Users
 } from "lucide-react";
 
 export default function PetsPage() {
@@ -40,18 +40,16 @@ export default function PetsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPet, setEditingPet] = useState<Partial<Pet> | null>(null);
-  const [selectedGuardianIdToLink, setSelectedGuardianIdToLink] = useState("");
+  /** Responsáveis vinculados ao pet em edição (um responsável pode ter vários pets). */
+  const [linkedGuardianIds, setLinkedGuardianIds] = useState<string[]>([]);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        // 3 consultas em paralelo (antes: 2 sequenciais + 1 por pet).
-        const [allPets, allGuardians, map] = await Promise.all([
-          unwrap(getPets()),
-          unwrap(getGuardians()),
-          unwrap(getGuardiansByPet()),
-        ]);
+        // Uma única ida ao servidor (as consultas rodam em paralelo lá).
+        const { pets: allPets, guardians: allGuardians, guardiansByPet: map } =
+          await unwrap(getRegistryData());
         setPets(allPets);
         setGuardians(allGuardians);
         setPetGuardiansMap(map);
@@ -78,13 +76,13 @@ export default function PetsPage() {
       general_notes: "",
       status: "active",
     });
-    setSelectedGuardianIdToLink("");
+    setLinkedGuardianIds([]);
     setModalOpen(true);
   };
 
   const handleOpenEditPet = (pet: Pet) => {
     setEditingPet({ ...pet });
-    setSelectedGuardianIdToLink("");
+    setLinkedGuardianIds((petGuardiansMap[pet.id] || []).map(g => g.id));
     setModalOpen(true);
   };
 
@@ -99,16 +97,19 @@ export default function PetsPage() {
       setIsSaving(true);
       const saved = await unwrap(savePet(editingPet));
 
-      // Se selecionou um responsável para vincular
-      if (selectedGuardianIdToLink) {
-        await unwrap(linkGuardianToPet(saved.id, selectedGuardianIdToLink));
-        const linked = guardians.find(g => g.id === selectedGuardianIdToLink);
-        if (linked) {
-          setPetGuardiansMap(prev => {
-            const current = prev[saved.id] || [];
-            return current.some(g => g.id === linked.id) ? prev : { ...prev, [saved.id]: [...current, linked] };
-          });
-        }
+      // Sincroniza os responsáveis só se a lista mudou.
+      const previousIds = (petGuardiansMap[saved.id] || []).map(g => g.id);
+      const changed =
+        previousIds.length !== linkedGuardianIds.length ||
+        previousIds.some(gid => !linkedGuardianIds.includes(gid));
+      if (changed) {
+        await unwrap(setPetGuardians(saved.id, linkedGuardianIds));
+        setPetGuardiansMap(prev => ({
+          ...prev,
+          [saved.id]: linkedGuardianIds
+            .map(gid => guardians.find(g => g.id === gid))
+            .filter((g): g is Guardian => !!g),
+        }));
       }
 
       setPets(prev => {
@@ -274,7 +275,7 @@ export default function PetsPage() {
                 {/* Responsáveis Vinculados */}
                 <div className="pt-3 border-t border-slate-100 space-y-1.5">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Tutores Vinculados
+                    Responsáveis Vinculados
                   </span>
                   {petGuards.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
@@ -383,8 +384,10 @@ export default function PetsPage() {
                 </div>
               </div>
 
-              <PetPhotoField
-                pet={editingPet}
+              <ProfilePhotoField
+                photoUrl={editingPet.photo_url}
+                name={editingPet.name}
+                kind="pet"
                 disabled={isSaving}
                 onChange={(photo_url) => setEditingPet(prev => ({ ...prev, photo_url }))}
               />
@@ -422,21 +425,68 @@ export default function PetsPage() {
                 />
               </div>
 
-              {/* Vincular Responsável */}
-              <div className="space-y-1 border-t border-slate-100 pt-3">
-                <label className="font-bold text-ink">Vincular a um Responsável:</label>
-                <select
-                  value={selectedGuardianIdToLink}
-                  onChange={(e) => setSelectedGuardianIdToLink(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                >
-                  <option value="">Selecione um tutor existente (ou deixe para depois)</option>
-                  {guardians.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.full_name} ({g.phone})
-                    </option>
-                  ))}
-                </select>
+              {/* Responsáveis (um pet pode ter vários; um responsável pode ter vários pets) */}
+              <div className="space-y-2 border-t border-slate-100 pt-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-ink flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-brand-blue-ink" />
+                    Responsáveis
+                  </span>
+                  <span className="text-[11px] text-ink-soft">{linkedGuardianIds.length} vinculado(s)</span>
+                </div>
+
+                {linkedGuardianIds.length > 0 ? (
+                  <ul className="space-y-1.5">
+                    {linkedGuardianIds.map((gid) => {
+                      const g = guardians.find(x => x.id === gid);
+                      return (
+                        <li
+                          key={gid}
+                          className="flex items-center justify-between gap-2 p-2 pl-3 bg-slate-50 border border-slate-200 rounded-xl"
+                        >
+                          <span className="min-w-0">
+                            <span className="block font-semibold text-ink truncate">{g?.full_name || "Responsável removido"}</span>
+                            {g?.phone && (
+                              <span className="flex items-center gap-1 text-[11px] text-ink-soft">
+                                <Phone className="w-3 h-3" />
+                                {g.phone}
+                              </span>
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setLinkedGuardianIds(prev => prev.filter(x => x !== gid))}
+                            disabled={isSaving}
+                            aria-label={`Desvincular ${g?.full_name || "responsável"}`}
+                            title="Desvincular"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-60 cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">Nenhum responsável vinculado.</p>
+                )}
+
+                {guardians.some(g => !linkedGuardianIds.includes(g.id)) ? (
+                  <SearchableSelect
+                    label="Adicionar responsável"
+                    value=""
+                    options={guardians
+                      .filter(g => !linkedGuardianIds.includes(g.id))
+                      .map(g => ({ value: g.id, label: g.full_name, hint: g.phone || g.email || undefined }))}
+                    onChange={(gid) => gid && setLinkedGuardianIds(prev => (prev.includes(gid) ? prev : [...prev, gid]))}
+                    placeholder="Selecione para vincular"
+                    searchPlaceholder="Buscar por nome ou telefone..."
+                    emptyMessage="Nenhum responsável encontrado."
+                    disabled={isSaving}
+                  />
+                ) : guardians.length === 0 ? (
+                  <p className="text-[11px] text-ink-soft">Cadastre responsáveis na aba Responsáveis para vinculá-los aqui.</p>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

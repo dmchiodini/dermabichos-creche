@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.pet_guardians (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pet_id UUID NOT NULL REFERENCES public.pets(id) ON DELETE CASCADE,
     guardian_id UUID NOT NULL REFERENCES public.guardians(id) ON DELETE CASCADE,
-    relationship TEXT DEFAULT 'Tutor',
+    relationship TEXT DEFAULT 'Responsável',
     is_primary BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(pet_id, guardian_id)
@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS public.staff_members (
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     name TEXT NOT NULL,
     role_title TEXT NOT NULL DEFAULT 'Monitor de Creche',
+    photo_url TEXT,
     active BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );

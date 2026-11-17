@@ -91,6 +91,8 @@ const staffSchema = z.object({
   id: id.optional(),
   name: z.string().trim().min(1, "Nome do colaborador é obrigatório").max(120),
   role_title: shortText.optional(),
+  // Link https ou foto enviada pelo admin (data-URL, já comprimida no navegador).
+  photo_url: z.string().max(8_500_000).nullable().optional(),
   active: z.boolean().optional(),
   created_at: z.string().max(40).optional(),
 });
@@ -181,10 +183,11 @@ export async function saveGuardian(guardian: Partial<Guardian>): Promise<ActionR
   });
 }
 
-export async function linkGuardianToPet(petId: string, guardianId: string, relationship = "Tutor"): Promise<ActionResult<void>> {
+/** Vínculos pet ↔ responsáveis são gerenciados no cadastro do pet (lista completa). */
+export async function setPetGuardians(petId: string, guardianIds: string[]): Promise<ActionResult<void>> {
   return run(async () => {
     await requireRole("admin");
-    return store.linkGuardianToPet(parse(id, petId), parse(id, guardianId), parse(shortText, relationship));
+    return store.setPetGuardians(parse(id, petId), parse(z.array(id).max(20, "Máximo de 20 responsáveis por pet."), guardianIds));
   });
 }
 
@@ -350,6 +353,96 @@ export async function removeDailyActivityPhoto(photoId: string, activityLogId: s
   return run(async () => {
     await requireActivityLogAccess(parse(id, activityLogId));
     return store.removeDailyActivityPhoto(parse(id, photoId), activityLogId);
+  });
+}
+
+// -------------------------------------------------------------
+// CARGA DAS TELAS (uma action por tela)
+//
+// O Next.js executa Server Actions UMA POR VEZ por cliente: um Promise.all de
+// várias actions no navegador vira uma fila (N idas e voltas ao servidor).
+// Estas actions fazem as consultas em paralelo NO SERVIDOR e respondem de uma vez.
+// -------------------------------------------------------------
+export interface DayOverviewData {
+  pets: Pet[];
+  attendance: Attendance[];
+  reports: DailyReport[];
+}
+
+/** Dashboard do admin: pets + presença + diários do dia. */
+export async function getDashboardData(targetDate: string): Promise<ActionResult<DayOverviewData>> {
+  return run(async () => {
+    await requireRole("admin");
+    const day = parse(date, targetDate);
+    const [pets, attendance, reports] = await Promise.all([
+      store.getPets(),
+      store.getAttendanceByDate(day),
+      store.getDailyReportsByDate(day),
+    ]);
+    return { pets, attendance, reports };
+  });
+}
+
+export interface HistoryData extends DayOverviewData {
+  activityLogs: DailyActivityLog[];
+}
+
+/** Histórico geral do admin: tudo do dia escolhido. */
+export async function getHistoryData(targetDate: string): Promise<ActionResult<HistoryData>> {
+  return run(async () => {
+    await requireRole("admin");
+    const day = parse(date, targetDate);
+    const [pets, attendance, reports, activityLogs] = await Promise.all([
+      store.getPets(),
+      store.getAttendanceByDate(day),
+      store.getDailyReportsByDate(day),
+      store.getDailyActivityLogs(day),
+    ]);
+    return { pets, attendance, reports, activityLogs };
+  });
+}
+
+export interface RegistryData {
+  pets: Pet[];
+  guardians: Guardian[];
+  guardiansByPet: Record<string, Guardian[]>;
+}
+
+/** Cadastros (telas de Pets e de Responsáveis): pets, responsáveis e vínculos. */
+export async function getRegistryData(): Promise<ActionResult<RegistryData>> {
+  return run(async () => {
+    await requireRole("admin");
+    const [pets, guardians, guardiansByPet] = await Promise.all([
+      store.getPets(),
+      store.getGuardians(),
+      store.getGuardiansByPet(),
+    ]);
+    return { pets, guardians, guardiansByPet };
+  });
+}
+
+export interface MonitoraData extends DayOverviewData {
+  /** Nome de quem está usando a tela (vem da sessão). */
+  viewerName: string;
+  guardiansByPet: Record<string, Guardian[]>;
+  activityLogs: DailyActivityLog[];
+  templates: ActivityTemplate[];
+}
+
+/** Área da monitora: tudo do dia (staff só acessa hoje; admin, qualquer data). */
+export async function getMonitoraData(targetDate: string): Promise<ActionResult<MonitoraData>> {
+  return run(async () => {
+    const session = await requireDateAccess(parse(date, targetDate));
+    const [pets, attendance, reports, guardiansByPet, activityLogs, templates] = await Promise.all([
+      store.getPets(),
+      store.getAttendanceByDate(targetDate),
+      store.getDailyReportsByDate(targetDate),
+      store.getGuardiansByPet(),
+      store.getDailyActivityLogs(targetDate),
+      // A monitora só enxerga os modelos ativos (mesma regra de getActivityTemplates).
+      store.getActivityTemplates(true),
+    ]);
+    return { viewerName: session.name, pets, attendance, reports, guardiansByPet, activityLogs, templates };
   });
 }
 

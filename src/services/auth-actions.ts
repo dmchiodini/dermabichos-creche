@@ -55,7 +55,7 @@ export async function loginStaff(monitorName: string, pin: string): Promise<Acti
 
 /**
  * Acesso do responsável por telefone ou e-mail (sem senha, conforme a regra do portal).
- * A busca acontece no servidor com correspondência exata — a lista de tutores
+ * A busca acontece no servidor com correspondência exata — a lista de responsáveis
  * nunca é enviada ao navegador.
  */
 export async function loginGuardian(identifier: string): Promise<ActionResult<{ full_name: string }>> {

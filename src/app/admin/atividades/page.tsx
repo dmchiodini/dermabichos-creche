@@ -11,6 +11,7 @@ import { unwrap, errorMessage } from "@/lib/action-result";
 import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
+import { normalizeSearch } from "@/lib/dog-breeds";
 import {
   Sparkles,
   Plus,
@@ -37,7 +38,6 @@ export default function AdminAtividadesPage() {
   const [templates, setTemplates] = useState<ActivityTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,15 +134,11 @@ export default function AdminAtividadesPage() {
     }
   };
 
-  const filteredTemplates = templates.filter(t => {
-    const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.default_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (t.category && t.category.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesCategory = categoryFilter === "all" || t.category === categoryFilter;
-
-    return matchesSearch && matchesCategory;
-  });
+  // Busca única: título, descrição ou categoria (sem diferenciar acentos/maiúsculas).
+  const query = normalizeSearch(searchTerm);
+  const filteredTemplates = query
+    ? templates.filter(t => normalizeSearch(`${t.title} ${t.default_description} ${t.category || ""}`).includes(query))
+    : templates;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -170,46 +166,17 @@ export default function AdminAtividadesPage() {
         </button>
       </div>
 
-      {/* Barra de Filtros */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por título ou descrição..."
-            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setCategoryFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-              categoryFilter === "all"
-                ? "bg-ink text-white"
-                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-            }`}
-          >
-            Todas ({templates.length})
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                categoryFilter === cat
-                  ? "bg-ink text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+      {/* Busca */}
+      <div className="relative w-full sm:max-w-sm">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          type="search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar por título, descrição ou categoria..."
+          aria-label="Buscar modelos de atividades"
+          className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
+        />
       </div>
 
       {/* Grid de Modelos */}
