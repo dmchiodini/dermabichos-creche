@@ -12,15 +12,13 @@ import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
 import { normalizeSearch } from "@/lib/dog-breeds";
+import { PageShell, PageHeader, SearchField, EmptyState } from "@/components/ui/Page";
 import {
   Sparkles,
   Plus,
-  Search,
   Edit3,
   Trash2,
   Check,
-  CheckCircle2,
-  XCircle,
   Loader2
 } from "lucide-react";
 
@@ -100,7 +98,7 @@ export default function AdminAtividadesPage() {
         return next.sort((x, y) => x.title.localeCompare(y.title, "pt-BR"));
       });
       setIsModalOpen(false);
-      toast.success(editingTemplate ? "Modelo atualizado." : "Modelo criado com sucesso!");
+      toast.success(editingTemplate ? "Atividade atualizada." : "Atividade criada.");
     } catch (err) {
       toast.error(errorMessage(err, "Erro ao salvar modelo de atividade."));
     } finally {
@@ -110,16 +108,16 @@ export default function AdminAtividadesPage() {
 
   const handleDelete = async (tpl: ActivityTemplate) => {
     const ok = await confirm({
-      title: "Excluir modelo de atividade?",
-      message: <>O modelo <strong>{tpl.title}</strong> deixará de aparecer para a equipe. Registros já publicados não são afetados.</>,
-      confirmLabel: "Excluir",
+      title: "Excluir esta atividade?",
+      message: <><strong>{tpl.title}</strong> deixará de aparecer para a equipe. Registros já publicados não são afetados.</>,
+      confirmLabel: "Excluir atividade",
       danger: true,
     });
     if (!ok) return;
     try {
       await unwrap(deleteActivityTemplate(tpl.id));
       setTemplates(prev => prev.filter(t => t.id !== tpl.id));
-      toast.success("Modelo excluído.");
+      toast.success("Atividade excluída.");
     } catch (err) {
       toast.error(errorMessage(err, "Erro ao excluir modelo de atividade."));
     }
@@ -141,116 +139,107 @@ export default function AdminAtividadesPage() {
     : templates;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">Modelos de Atividades</h1>
-            <span className="bg-brand-pink/15 text-brand-pink-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              Catálogo
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-ink-soft mt-0.5">
-            Cadastre os textos padrão das atividades. A monitora poderá selecioná-los com 1 clique ao publicar fotos na rotina.
-          </p>
-        </div>
+    <PageShell>
+      <PageHeader
+        title="Atividades"
+        count={templates.length}
+        description="Textos prontos que a monitora escolhe com um toque ao publicar as fotos do dia."
+        actions={
+          <button type="button" onClick={handleOpenNew} className="btn btn-primary">
+            <Plus className="w-4 h-4" />
+            Nova atividade
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={handleOpenNew}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-brand-pink hover:bg-brand-pink-dark text-white shadow-xs transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Modelo de Atividade</span>
-        </button>
-      </div>
+      <SearchField
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Buscar por título, descrição ou categoria"
+        label="Buscar atividades"
+      />
 
-      {/* Busca */}
-      <div className="relative w-full sm:max-w-sm">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="search"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar por título, descrição ou categoria..."
-          aria-label="Buscar modelos de atividades"
-          className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
-        />
-      </div>
-
-      {/* Grid de Modelos */}
       {loading ? (
-        <CardGridSkeleton label="Carregando modelos de atividades..." />
+        <CardGridSkeleton label="Carregando atividades..." />
       ) : filteredTemplates.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl text-center border border-slate-200 space-y-3">
-          <Sparkles className="w-10 h-10 text-brand-pink-ink mx-auto" />
-          <h3 className="font-bold text-base text-ink">Nenhum modelo encontrado</h3>
-          <p className="text-xs text-ink-soft max-w-sm mx-auto">
-            Crie modelos de brincadeiras e enriquecimentos ambientais para padronizar os registros da creche.
-          </p>
-        </div>
+        query ? (
+          <EmptyState icon={<Sparkles className="w-6 h-6" />} title="Nenhuma atividade encontrada">
+            Tente outra palavra ou limpe a busca.
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={<Sparkles className="w-6 h-6" />}
+            title="Nenhuma atividade cadastrada"
+            action={
+              <button type="button" onClick={handleOpenNew} className="btn btn-primary">
+                <Plus className="w-4 h-4" />
+                Nova atividade
+              </button>
+            }
+          >
+            Cadastre brincadeiras e enriquecimentos para padronizar os registros da creche.
+          </EmptyState>
+        )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredTemplates.map((tpl) => (
-            <div
-              key={tpl.id}
-              className={`bg-white rounded-2xl border p-5 shadow-2xs flex flex-col justify-between space-y-3 transition-all ${
-                tpl.active ? "border-slate-200 hover:border-slate-300" : "border-slate-200 bg-slate-50/50 opacity-70"
-              }`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-blue-ink bg-brand-blue/10 px-2 py-0.5 rounded-md">
-                      {tpl.category || "Geral"}
-                    </span>
-                    <h3 className="font-black text-base text-ink mt-1 leading-tight">
-                      {tpl.title}
-                    </h3>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleToggleStatus(tpl)}
-                    className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
-                      tpl.active
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-slate-200 text-slate-600"
-                    }`}
-                    title="Clique para alternar ativo/inativo"
-                  >
-                    {tpl.active ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                    <span>{tpl.active ? "Ativo" : "Inativo"}</span>
-                  </button>
+            <li key={tpl.id} className={`panel p-5 flex flex-col gap-3 ${tpl.active ? "" : "bg-paper!"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-brand-blue-ink">{tpl.category || "Geral"}</p>
+                  <h2 className={`text-lg font-bold leading-tight mt-0.5 ${tpl.active ? "text-ink" : "text-ink-soft"}`}>
+                    {tpl.title}
+                  </h2>
                 </div>
 
-                <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  {tpl.default_description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                {/* Interruptor: disponível ou não para a equipe */}
                 <button
                   type="button"
-                  onClick={() => handleOpenEdit(tpl)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  role="switch"
+                  aria-checked={tpl.active}
+                  aria-label={`Disponível para a equipe: ${tpl.title}`}
+                  onClick={() => handleToggleStatus(tpl)}
+                  className="shrink-0 flex items-center gap-2 text-xs font-bold text-ink-soft cursor-pointer rounded-full"
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Editar</span>
+                  {tpl.active ? "Ativa" : "Inativa"}
+                  <span
+                    aria-hidden
+                    className={`relative w-10 h-6 rounded-full transition-colors ${tpl.active ? "bg-brand-pink" : "bg-slate-300"}`}
+                  >
+                    <span
+                      className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-[left] ${tpl.active ? "left-5" : "left-1"}`}
+                    />
+                  </span>
                 </button>
+              </div>
+
+              <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-wrap line-clamp-5">
+                {tpl.default_description}
+              </p>
+
+              <div className="mt-auto flex items-center justify-end gap-2 pt-3 border-t border-line">
                 <button
                   type="button"
                   onClick={() => handleDelete(tpl)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  aria-label={`Excluir ${tpl.title}`}
+                  className="btn btn-sm btn-ghost text-rose-700!"
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Excluir</span>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Excluir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(tpl)}
+                  aria-label={`Editar ${tpl.title}`}
+                  className="btn btn-sm btn-secondary"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  Editar
                 </button>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Modal para Criar / Editar Modelo */}
@@ -259,89 +248,72 @@ export default function AdminAtividadesPage() {
         onClose={() => setIsModalOpen(false)}
         locked={isSaving}
         size="md"
-        title={editingTemplate ? "Editar Modelo de Atividade" : "Novo Modelo de Atividade"}
-        subtitle="Disponível para a monitora na rotina"
+        title={editingTemplate ? "Editar atividade" : "Nova atividade"}
+        subtitle="Aparece como sugestão para a monitora"
         icon={
-          <div className="w-9 h-9 rounded-xl bg-brand-pink/15 text-brand-pink-ink flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-xl bg-brand-pink-light text-brand-pink-ink flex items-center justify-center">
+            <Sparkles className="w-5 h-5" />
           </div>
         }
       >
-            <form onSubmit={handleSave} className="p-4 sm:p-5 space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink">
-                  Título da Atividade: <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Brincadeira da caça"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-pink"
-                />
-              </div>
+        <form onSubmit={handleSave} className="px-4 sm:px-6 py-5 space-y-4 text-sm">
+          <div>
+            <label htmlFor="tpl-title" className="field-label">Título</label>
+            <input
+              id="tpl-title"
+              type="text"
+              required
+              placeholder="Ex.: Brincadeira da caça"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="field"
+            />
+          </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink">Categoria / Objetivo:</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-pink"
-                >
-                  {categories.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
+          <div>
+            <label htmlFor="tpl-category" className="field-label">Categoria</label>
+            <select id="tpl-category" value={category} onChange={(e) => setCategory(e.target.value)} className="field">
+              {categories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-ink">
-                  Descrição Pedagógica Padrão: <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Ex: Nossos baixinhos precisavam encontrar uma forma de tirar o petisco de dentro do brinquedo. Essa atividade desenvolve coordenação motora, faro e integração, além de ser muito divertida."
-                  value={defaultDescription}
-                  onChange={(e) => setDefaultDescription(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-pink leading-relaxed"
-                />
-                <p className="text-[11px] text-ink-soft">
-                  Este texto será preenchido automaticamente quando a monitora selecionar esta atividade na rotina diária.
-                </p>
-              </div>
+          <div>
+            <label htmlFor="tpl-description" className="field-label">Descrição para os responsáveis</label>
+            <textarea
+              id="tpl-description"
+              rows={5}
+              required
+              placeholder="Ex.: Nossos baixinhos precisavam tirar o petisco de dentro do brinquedo. A atividade desenvolve coordenação motora, faro e integração."
+              value={defaultDescription}
+              onChange={(e) => setDefaultDescription(e.target.value)}
+              className="field leading-relaxed"
+            />
+            <p className="field-hint">Preenchida automaticamente quando a monitora escolhe esta atividade. Ela pode ajustar antes de publicar.</p>
+          </div>
 
-              <label className="flex items-center gap-2 text-xs font-bold text-ink cursor-pointer pt-1">
-                <input
-                  type="checkbox"
-                  checked={active}
-                  onChange={(e) => setActive(e.target.checked)}
-                  className="w-4 h-4 rounded text-brand-pink-ink"
-                />
-                <span>Ativo (disponível para seleção pela equipe)</span>
-              </label>
+          <label className="flex items-center gap-2.5 text-sm font-bold text-ink cursor-pointer">
+            <input
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              className="w-4.5 h-4.5 rounded accent-brand-pink-ink"
+            />
+            Disponível para a equipe
+          </label>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-800 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-pink text-white hover:bg-brand-pink-dark shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>{isSaving ? "Salvando..." : "Salvar Modelo"}</span>
-                </button>
-              </div>
-            </form>
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-line">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-ghost">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSaving} className="btn btn-primary">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {isSaving ? "Salvando..." : editingTemplate ? "Salvar alterações" : "Criar atividade"}
+            </button>
+          </div>
+        </form>
       </Modal>
-    </div>
+    </PageShell>
   );
 }
-

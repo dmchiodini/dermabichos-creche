@@ -56,9 +56,9 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
   };
 
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={inputId} className="font-bold text-ink">
-        Foto de Perfil (Opcional)
+    <div>
+      <label htmlFor={inputId} className="field-label">
+        Foto (opcional)
       </label>
 
       <div className="flex items-center gap-4">
@@ -70,8 +70,8 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
             aria-label={photo ? `Trocar foto de ${displayName}` : `Adicionar foto de ${displayName}`}
             className={`group w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center transition-colors cursor-pointer disabled:cursor-default ${
               photo && !broken
-                ? "border border-slate-200 bg-slate-100"
-                : "border-2 border-dashed border-slate-300 bg-slate-50 hover:border-brand-pink-ink hover:bg-brand-pink/5"
+                ? "bg-brand-blue-light"
+                : "border-2 border-dashed border-[#cfd5e0] bg-paper hover:border-brand-pink hover:bg-brand-pink-light"
             }`}
           >
             {processing ? (
@@ -85,9 +85,9 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
                 className="w-full h-full object-cover transition-opacity group-hover:opacity-85"
               />
             ) : (
-              <span className="flex flex-col items-center gap-1 text-slate-400 group-hover:text-brand-pink-ink">
+              <span className="flex flex-col items-center gap-1 text-ink-soft group-hover:text-brand-pink-ink">
                 <PlaceholderIcon className="w-7 h-7" />
-                <span className="text-[10px] font-bold uppercase tracking-wide">
+                <span className="text-xs font-bold">
                   {broken ? "Indisponível" : "Adicionar"}
                 </span>
               </span>
@@ -101,7 +101,7 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
             disabled={busy}
             tabIndex={-1}
             aria-hidden
-            className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-brand-pink-ink text-white ring-[3px] ring-white shadow-sm flex items-center justify-center hover:opacity-90 disabled:opacity-60 cursor-pointer"
+            className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-brand-pink text-ink ring-[3px] ring-white shadow-sm flex items-center justify-center hover:opacity-90 disabled:opacity-60 cursor-pointer"
           >
             <Camera className="w-4 h-4" />
           </button>
@@ -113,7 +113,7 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
               disabled={busy}
               aria-label="Remover foto"
               title="Remover foto"
-              className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-white text-rose-600 border border-slate-200 shadow-sm flex items-center justify-center hover:bg-rose-50 disabled:opacity-60 cursor-pointer"
+              className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-white text-rose-700 border border-line shadow-sm flex items-center justify-center hover:bg-rose-50 disabled:opacity-60 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -128,7 +128,7 @@ export function ProfilePhotoField({ photoUrl, name, kind = "pet", disabled, onCh
                 ? "Toque na foto para trocar"
                 : "Toque para adicionar uma foto"}
           </p>
-          <p className="text-[11px] text-ink-soft leading-snug">
+          <p className="text-xs text-ink-soft leading-snug">
             JPG, PNG ou WebP. No celular, abre a câmera ou a galeria.
           </p>
         </div>

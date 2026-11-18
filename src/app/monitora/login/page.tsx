@@ -16,18 +16,17 @@ export default function MonitoraLoginPage() {
 
   return (
     <LoginCard
-      title="Acesso da Monitora"
-      subtitle="Espaço operacional exclusivo para registros da rotina diária da creche"
-      background="bg-linear-to-b from-brand-blue-light to-brand-pink-light"
-      submitLabel="Iniciar Plantão na Creche"
-      submitClassName="bg-brand-blue-ink hover:bg-ink"
-      secretLabel="PIN ou Senha de Acesso:"
+      area="Monitora"
+      title="Começar o plantão"
+      subtitle="Registre a chegada dos baixinhos, a rotina e as fotos de hoje."
+      submitLabel="Entrar"
+      secretLabel="PIN"
       secretPlaceholder="Digite seu PIN"
       secretInputMode="numeric"
       demoHint={
         demo ? (
           <>
-            Modo demonstração: digite qualquer PIN (ex: <strong>1234</strong>) para entrar.
+            Modo demonstração: qualquer PIN funciona (ex.: <strong>1234</strong>).
           </>
         ) : null
       }
@@ -39,20 +38,15 @@ export default function MonitoraLoginPage() {
           router.refresh();
           return null;
         } catch {
-          return "Não foi possível conectar ao servidor. Tente novamente.";
+          return "Não foi possível conectar ao servidor. Verifique a internet e tente novamente.";
         }
       }}
     >
-      <div className="space-y-1">
-        <label htmlFor="monitor-name" className="text-xs font-bold text-ink">
-          Selecione a Monitora:
+      <div>
+        <label htmlFor="monitor-name" className="field-label">
+          Quem está entrando
         </label>
-        <select
-          id="monitor-name"
-          value={monitorName}
-          onChange={(e) => setMonitorName(e.target.value)}
-          className="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-blue"
-        >
+        <select id="monitor-name" value={monitorName} onChange={(e) => setMonitorName(e.target.value)} className="field">
           <option value="Ana Paula">Ana Paula (Monitora de Creche)</option>
           <option value="Mariana Cuidadores">Mariana (Monitora Assistente)</option>
         </select>

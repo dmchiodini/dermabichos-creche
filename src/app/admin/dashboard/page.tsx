@@ -6,16 +6,9 @@ import { unwrap, errorMessage } from "@/lib/action-result";
 import { useTodayDate } from "@/lib/use-today";
 import { Pet, Attendance, DailyReport } from "@/types/database.types";
 import { useFeedback } from "@/components/ui/Feedback";
-import {
-  Users,
-  CheckCircle2,
-  Share2,
-  Activity,
-  Sparkles,
-  Calendar,
-  Utensils,
-  Loader2
-} from "lucide-react";
+import { Activity, Utensils, Loader2 } from "lucide-react";
+import { PageShell, PageHeader } from "@/components/ui/Page";
+import { formatDateBR } from "@/lib/date-utils";
 
 export default function DashboardPage() {
   const { toast } = useFeedback();
@@ -76,189 +69,140 @@ export default function DashboardPage() {
   // Alimentação
   const ateAllCount = reports.filter(r => r.feeding === "comeu_tudo").length;
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">Dashboard de Indicadores</h1>
-            <span className="bg-brand-blue/15 text-brand-blue-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              Gestão
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-ink-soft mt-0.5">
-            Acompanhamento de taxa de presença, relatórios, capacidade e participação
-          </p>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-brand-blue-ink" aria-label="Carregando" />}
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs">
-            <Calendar className="w-4 h-4 text-brand-pink-ink" />
+  const isToday = selectedDate === today;
+
+  return (
+    <PageShell>
+      <PageHeader
+        title="Indicadores"
+        description={isToday ? "Como está o dia de hoje na creche." : `Resumo do dia ${formatDateBR(selectedDate)}.`}
+        actions={
+          <div className="flex items-center gap-2">
+            {loading && <Loader2 className="w-4 h-4 animate-spin text-brand-blue-ink" aria-label="Carregando" />}
+            <label className="sr-only" htmlFor="dashboard-date">Data dos indicadores</label>
             <input
+              id="dashboard-date"
               type="date"
               value={selectedDate}
               onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-              aria-label="Data dos indicadores"
-              className="font-bold text-ink bg-transparent border-none focus:outline-none cursor-pointer"
+              className="field w-auto! font-bold"
             />
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Grid de Métricas Principais */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity ${loading ? "opacity-60" : ""}`} aria-busy={loading}>
-        {/* Taxa de Presença */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-soft">
-            <span>Taxa de Presença</span>
-            <Users className="w-4 h-4 text-brand-blue-ink" />
-          </div>
+      <div className={`space-y-4 transition-opacity ${loading ? "opacity-60" : ""}`} aria-busy={loading}>
+        {/* Presença: o número que a gestão olha primeiro */}
+        <section className="panel p-5 sm:p-7 grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:items-center">
           <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-ink">{attendanceRate}%</span>
-              <span className="text-xs text-slate-500">({presentCount} de {totalPets} cães)</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div 
-                className="bg-brand-blue h-full rounded-full transition-all duration-500"
-                style={{ width: `${attendanceRate}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Capacidade Utilizada */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-soft">
-            <span>Capacidade Utilizada</span>
-            <Activity className="w-4 h-4 text-brand-pink-ink" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-ink">{capacityUsedPercent}%</span>
-              <span className="text-xs text-slate-500">({presentCount} / {referenceCapacity} vagas)</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div 
-                className="bg-brand-pink h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, capacityUsedPercent)}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Finalização dos Relatórios */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-soft">
-            <span>Relatórios Concluídos</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-ink">{completionPercent}%</span>
-              <span className="text-xs text-slate-500">({completedReportsCount} de {presentCount || 1})</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${completionPercent}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Compartilhamento WhatsApp */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-soft">
-            <span>Compartilhados</span>
-            <Share2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-ink">{sharedPercent}%</span>
-              <span className="text-xs text-slate-500">({sharedReportsCount} enviados)</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div 
-                className="bg-brand-blue h-full rounded-full transition-all duration-500"
-                style={{ width: `${sharedPercent}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Indicadores Detalhados do Dia */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Desempenho de Bem-Estar */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
-          <h3 className="font-bold text-base text-ink flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand-pink-ink" />
-            Indicadores de Rotina & Bem-Estar
-          </h3>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                  <Utensils className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-ink">Apetite Pleno (Comeu Tudo)</p>
-                  <p className="text-[11px] text-ink-soft">Pets com alimentação 100% consumida</p>
-                </div>
-              </div>
-              <span className="text-sm font-black text-ink">{ateAllCount} pets</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-brand-blue/20 text-brand-blue-ink flex items-center justify-center font-bold text-xs">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-ink">Participação Ativa</p>
-                  <p className="text-[11px] text-ink-soft">Engajamento nos enriquecimentos ambientais</p>
-                </div>
-              </div>
-              <span className="text-sm font-black text-ink">{activeParticipationCount} pets</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Configuração Simples de Capacidade de Referência */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
-          <div className="space-y-2">
-            <h3 className="font-bold text-base text-ink flex items-center gap-2">
-              <Users className="w-4 h-4 text-brand-blue-ink" />
-              Capacidade de Referência da Creche
-            </h3>
-            <p className="text-xs text-ink-soft leading-relaxed">
-              O administrador pode definir o limite de referência diário para monitorar a taxa de ocupação da unidade, sem necessidade de sistema de reservas.
+            <h2 className="text-base font-bold text-ink-soft">Baixinhos presentes</h2>
+            <p className="mt-1 font-display font-extrabold text-ink leading-none tabular">
+              <span className="text-6xl sm:text-7xl">{presentCount}</span>
+              <span className="text-2xl sm:text-3xl text-ink-soft"> de {totalPets}</span>
             </p>
+            <p className="mt-2 text-sm text-ink-soft">
+              {totalPets > 0 ? `${attendanceRate}% dos baixinhos ativos vieram.` : "Nenhum baixinho ativo cadastrado."}
+            </p>
+            <Meter value={attendanceRate} className="mt-4 h-3" color="bg-brand-pink" label="Presença" />
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-ink block">Capacidade Máxima Sugerida:</span>
-              <span className="text-[11px] text-ink-soft">Vagas operacionais da unidade</span>
+          <div className="rounded-2xl bg-brand-blue-light p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-bold text-ink">Ocupação</h2>
+                <p className="text-xs text-ink-soft">Presentes em relação às vagas</p>
+              </div>
+              <p className="font-display text-3xl font-extrabold text-ink tabular">{capacityUsedPercent}%</p>
             </div>
-            <div className="flex items-center gap-2">
+            <Meter value={Math.min(100, capacityUsedPercent)} className="mt-3" color="bg-brand-blue-ink" label="Ocupação" />
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <label htmlFor="capacity" className="text-sm text-ink-soft">Vagas por dia</label>
               <input
+                id="capacity"
                 type="number"
                 min="1"
                 max="100"
                 value={referenceCapacity}
                 onChange={(e) => setReferenceCapacity(Number(e.target.value) || 1)}
-                className="w-16 p-2 text-center text-sm font-bold bg-white border border-slate-200 rounded-lg"
+                className="field w-20! text-center font-bold tabular"
               />
-              <span className="text-xs text-ink-soft">cães</span>
             </div>
           </div>
+        </section>
+
+        {/* Diários e bem-estar */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <section className="panel p-5 sm:p-6">
+            <h2 className="text-lg font-bold text-ink">Diários dos presentes</h2>
+            <dl className="mt-4 space-y-5">
+              <Rate
+                label="Concluídos"
+                value={completionPercent}
+                detail={`${completedReportsCount} de ${presentCount}`}
+                color="bg-emerald-500"
+              />
+              <Rate
+                label="Enviados no WhatsApp"
+                value={sharedPercent}
+                detail={`${sharedReportsCount} de ${presentCount}`}
+                color="bg-brand-blue-ink"
+              />
+            </dl>
+          </section>
+
+          <section className="panel p-5 sm:p-6">
+            <h2 className="text-lg font-bold text-ink">Bem-estar</h2>
+            <dl className="mt-2 divide-y divide-line">
+              <Count icon={<Utensils className="w-4 h-4" />} label="Comeram toda a refeição" value={ateAllCount} />
+              <Count icon={<Activity className="w-4 h-4" />} label="Participaram das atividades" value={activeParticipationCount} />
+            </dl>
+          </section>
         </div>
       </div>
+    </PageShell>
+  );
+}
+
+function Meter({ value, color, label, className = "h-2" }: { value: number; color: string; label: string; className?: string }) {
+  return (
+    <div
+      role="meter"
+      aria-label={label}
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={`w-full rounded-full bg-white overflow-hidden ring-1 ring-inset ring-line ${className}`}
+    >
+      <div className={`h-full rounded-full transition-[width] duration-500 ${color}`} style={{ width: `${value}%` }} />
+    </div>
+  );
+}
+
+function Rate({ label, value, detail, color }: { label: string; value: number; detail: string; color: string }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <dt className="text-sm font-bold text-ink">{label}</dt>
+        <dd className="text-sm text-ink-soft tabular">
+          <span className="font-display text-xl font-extrabold text-ink">{value}%</span> ({detail})
+        </dd>
+      </div>
+      <Meter value={value} color={color} label={label} className="mt-2 h-2" />
+    </div>
+  );
+}
+
+function Count({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-3.5">
+      <dt className="flex items-center gap-3 text-sm font-semibold text-ink">
+        <span className="w-9 h-9 rounded-xl bg-brand-pink-light text-brand-pink-ink flex items-center justify-center">{icon}</span>
+        {label}
+      </dt>
+      <dd className="font-display text-2xl font-extrabold text-ink tabular">
+        {value} <span className="text-sm font-bold text-ink-soft font-sans">{value === 1 ? "baixinho" : "baixinhos"}</span>
+      </dd>
     </div>
   );
 }

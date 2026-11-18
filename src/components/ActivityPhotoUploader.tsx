@@ -74,18 +74,18 @@ export function ActivityPhotoUploader({
     <div className="space-y-3">
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
+          <span className="field-label mb-0! flex items-center gap-1.5">
             <Camera className="w-4 h-4 text-brand-pink-ink shrink-0" />
-            <span>Fotos da Atividade</span>
+            <span>Fotos</span>
           </span>
 
-          <span className="text-[11px] font-bold bg-brand-pink/15 text-brand-pink-ink px-2.5 py-0.5 rounded-full shrink-0">
-            {photos.length} de {maxPhotos} fotos
+          <span className="text-xs font-bold text-ink-soft tabular shrink-0">
+            {photos.length} de {maxPhotos}
           </span>
         </div>
 
-        <p className="text-[11px] text-ink-soft leading-snug">
-          Selecione fotos da câmera ou galeria do celular. Elas são otimizadas automaticamente antes do envio.
+        <p className="text-xs text-ink-soft leading-snug">
+          Escolha da câmera ou da galeria. As fotos são reduzidas automaticamente antes do envio.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export function ActivityPhotoUploader({
         {photos.map((photo, index) => (
           <div
             key={photo.id || index}
-            className="group relative rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-2xs animate-pop-in"
+            className="group relative rounded-xl overflow-hidden aspect-square bg-brand-blue-light animate-pop-in"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -103,14 +103,11 @@ export function ActivityPhotoUploader({
               decoding="async"
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1 rounded font-bold">
-              #{index + 1}
-            </span>
             <button
               type="button"
               onClick={() => handleRemove(photo.id)}
               disabled={removingId === photo.id || isUploading}
-              className="absolute top-1 right-1 w-7 h-7 bg-white/95 hover:bg-rose-500 hover:text-white rounded-lg text-rose-600 shadow-xs flex items-center justify-center transition-colors cursor-pointer disabled:opacity-60"
+              className="absolute top-1 right-1 w-8 h-8 bg-white/95 hover:bg-rose-600 hover:text-white rounded-lg text-rose-700 shadow-xs flex items-center justify-center transition-colors cursor-pointer disabled:opacity-60"
               aria-label={`Remover foto ${index + 1}`}
             >
               {removingId === photo.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -122,20 +119,20 @@ export function ActivityPhotoUploader({
           Array.from({ length: progress.total - progress.done }).map((_, i) => (
             <div
               key={`pending-${i}`}
-              className="rounded-xl aspect-square bg-slate-100 border border-slate-200 animate-pulse flex items-center justify-center"
+              className="rounded-xl aspect-square bg-paper border border-line animate-pulse flex items-center justify-center"
               aria-hidden
             >
-              <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+              <Loader2 className="w-5 h-5 text-ink-soft animate-spin" />
             </div>
           ))}
 
         {canAddMore && !isUploading && (
-          <label className="border-2 border-dashed border-brand-blue/40 hover:border-brand-blue active:bg-brand-blue/10 rounded-xl flex flex-col items-center justify-center gap-1 p-2 text-center aspect-square bg-slate-50/80 transition-all cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-white shadow-2xs flex items-center justify-center text-brand-blue-ink">
+          <label className="border-2 border-dashed border-brand-blue hover:bg-brand-blue-light active:bg-brand-blue-light rounded-xl flex flex-col items-center justify-center gap-1 p-2 text-center aspect-square bg-white transition-colors cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center text-ink">
               <Plus className="w-4 h-4" />
             </div>
-            <span className="text-[11px] font-bold text-ink leading-tight">Adicionar</span>
-            <span className="text-[10px] text-ink-soft">(Até {remainingSlots})</span>
+            <span className="text-xs font-bold text-ink leading-tight">Adicionar</span>
+            <span className="text-[11px] text-ink-soft">até {remainingSlots}</span>
             <input
               type="file"
               multiple
@@ -149,7 +146,7 @@ export function ActivityPhotoUploader({
       </div>
 
       {isUploading && (
-        <p role="status" className="text-[11px] font-semibold text-brand-blue-ink flex items-center gap-1.5">
+        <p role="status" className="text-xs font-semibold text-brand-blue-ink flex items-center gap-1.5">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
           Enviando fotos... {progress.done} de {progress.total}
         </p>

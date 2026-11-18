@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AuthShell, AuthBrand } from "@/components/auth/AuthShell";
 
 const noopSubscribe = () => () => {};
-import Link from "next/link";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
-import { BrandLogo } from "@/components/BrandLogo";
-import { cn } from "@/lib/utils";
 
 interface LoginCardProps {
+  /** Nome da área (ex.: "Administração"). */
+  area: string;
   title: string;
   subtitle: string;
-  background: string;
   submitLabel: string;
-  submitClassName: string;
   onSubmit: (secret: string) => Promise<string | null>;
   secretLabel: string;
   secretPlaceholder: string;
@@ -23,13 +22,12 @@ interface LoginCardProps {
   demoHint?: ReactNode;
 }
 
-/** Card de login reutilizado pela administração e pela área da monitora. */
+/** Tela de login reutilizada pela administração e pela área da monitora. */
 export function LoginCard({
+  area,
   title,
   subtitle,
-  background,
   submitLabel,
-  submitClassName,
   onSubmit,
   secretLabel,
   secretPlaceholder,
@@ -62,78 +60,73 @@ export function LoginCard({
   };
 
   return (
-    <div className={cn("min-h-dvh flex flex-col justify-center items-center p-4", background)}>
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6 animate-pop-in">
-        <div className="text-center space-y-2">
-          <BrandLogo size="lg" className="mx-auto" />
-          <h1 className="text-2xl font-black text-ink">{title}</h1>
-          <p className="text-xs text-ink-soft">{subtitle}</p>
-        </div>
+    <AuthShell
+      top={
+        <Link
+          href="/equipe"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink rounded-lg px-2 py-1.5 -ml-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Acesso da equipe
+        </Link>
+      }
+    >
+          <AuthBrand caption={area} />
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {children}
+          <h1 className="mt-6 text-center text-[1.75rem] sm:text-3xl font-extrabold text-ink leading-tight">{title}</h1>
+          <p className="mt-2 text-center text-sm text-ink-soft">{subtitle}</p>
 
-          <div className="space-y-1">
-            <label htmlFor="login-secret" className="text-xs font-bold text-ink">
-              {secretLabel}
-            </label>
-            <div className="relative">
-              <input
-                id="login-secret"
-                type={showSecret ? "text" : "password"}
-                inputMode={secretInputMode}
-                autoComplete="current-password"
-                required
-                value={secret}
-                onChange={(e) => setSecret(e.target.value)}
-                placeholder={secretPlaceholder}
-                aria-invalid={!!error}
-                aria-describedby={error ? "login-error" : undefined}
-                className="w-full text-sm pl-3 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-blue"
-              />
-              <button
-                type="button"
-                onClick={() => setShowSecret((v) => !v)}
-                aria-label={showSecret ? "Ocultar senha" : "Mostrar senha"}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-ink cursor-pointer"
-              >
-                {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
+            {children}
+
+            <div>
+              <label htmlFor="login-secret" className="field-label">
+                {secretLabel}
+              </label>
+              <div className="relative">
+                <input
+                  id="login-secret"
+                  type={showSecret ? "text" : "password"}
+                  inputMode={secretInputMode}
+                  autoComplete="current-password"
+                  required
+                  value={secret}
+                  onChange={(e) => setSecret(e.target.value)}
+                  placeholder={secretPlaceholder}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "login-error" : undefined}
+                  className="field pr-12!"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecret((v) => !v)}
+                  aria-label={showSecret ? "Ocultar senha" : "Mostrar senha"}
+                  className="icon-btn absolute right-1 top-1/2 -translate-y-1/2"
+                >
+                  {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {error && (
-            <p
-              id="login-error"
-              role="alert"
-              className="text-xs text-rose-700 bg-rose-50 border border-rose-200 p-2.5 rounded-lg font-semibold"
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={cn(
-              "w-full py-3.5 rounded-xl font-bold text-sm text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-70",
-              submitClassName
+            {error && (
+              <p
+                id="login-error"
+                role="alert"
+                className="text-sm text-rose-800 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl font-semibold"
+              >
+                {error}
+              </p>
             )}
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            <span>{loading ? "Entrando..." : submitLabel}</span>
-            {!loading && <ArrowRight className="w-4 h-4" />}
-          </button>
-        </form>
 
-        <div className="pt-3 border-t border-slate-100 flex flex-col items-center gap-2 text-center">
-          {demoHint && <p className="text-[11px] text-slate-500">{demoHint}</p>}
-          <Link href="/" className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-soft hover:text-ink">
-            <ArrowLeft className="w-3 h-3" /> Voltar para a escolha de acesso
-          </Link>
-        </div>
-      </div>
-    </div>
+            <button type="submit" disabled={loading} className="btn btn-lg btn-primary w-full">
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{loading ? "Entrando..." : submitLabel}</span>
+            </button>
+          </form>
+
+          {demoHint && (
+            <p className="mt-6 pt-5 border-t border-line text-xs text-ink-soft text-center">{demoHint}</p>
+          )}
+    </AuthShell>
   );
 }
 

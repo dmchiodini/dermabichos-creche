@@ -1,32 +1,37 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Tokens da marca Dermabichos (Tailwind v4)
-   Uso: bg-brand-pink, text-ink, border-brand-blue/40, etc.
+   Identidade Dermabichos (Tailwind v4)
+
+   As cores da marca são tons pastel: funcionam como PREENCHIMENTO com texto
+   escuro (tinta), nunca com texto branco (contraste insuficiente).
+     rosa  #CD8DA7 + tinta → 5,3:1     azul  #8DB6DB + tinta → 6,6:1
+   Para texto colorido sobre fundo claro use as variantes *-ink.
    ========================================================================== */
 @theme {
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
 
-  /* Rosa principal */
+  /* Rosa da marca */
   --color-brand-pink: #CD8DA7;
-  --color-brand-pink-dark: #b87791;
-  --color-brand-pink-light: #fbf2f6;
-  /* Variante para TEXTO sobre fundo claro (contraste ≥ 4.5:1) */
-  --color-brand-pink-ink: #9b4f70;
+  --color-brand-pink-dark: #C47C9A;   /* hover do preenchimento (tinta ainda ≥ 4,5:1) */
+  --color-brand-pink-light: #F7ECF1;  /* fundo suave */
+  --color-brand-pink-ink: #8A3F62;    /* texto/ícone rosa sobre claro (7:1) */
 
-  /* Azul principal */
-  --color-brand-blue: #79B7DE;
-  --color-brand-blue-dark: #5ea4d0;
-  --color-brand-blue-light: #f0f7fc;
-  /* Variante para TEXTO sobre fundo claro (contraste ≥ 4.5:1) */
-  --color-brand-blue-ink: #2c658a;
+  /* Azul da marca */
+  --color-brand-blue: #8DB6DB;
+  --color-brand-blue-dark: #7FA9D0;
+  --color-brand-blue-light: #EAF2F9;
+  --color-brand-blue-ink: #2B5F88;    /* texto/ícone azul sobre claro (6,8:1) */
 
-  /* Tipografia */
-  --color-ink: #25313B;
-  --color-ink-soft: #5B6570;
-  --color-ink-dark: #1c262f;
+  /* Neutros */
+  --color-ink: #2B2A3A;
+  --color-ink-soft: #5E6272;
+  --color-ink-dark: #1F1E2B;
+  --color-paper: #F5F8FB;
+  --color-line: #E2E6EE;
 
-  /* Breakpoint extra para celulares maiores (era usado no código, mas não existia) */
+  /* Breakpoint extra para celulares maiores */
   --breakpoint-xs: 30rem;
 
   --animate-fade-in: fade-in 0.18s ease-out both;
@@ -49,7 +54,6 @@
 
 :root {
   color-scheme: light;
-  --surface: #F8FAFC;
 }
 
 html {
@@ -58,12 +62,18 @@ html {
 }
 
 body {
-  background-color: var(--surface);
+  background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 /* Evita zoom automático do iOS ao focar campos (exige ≥ 16px no celular). */
@@ -81,7 +91,7 @@ body {
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--color-brand-blue);
+  outline: 2px solid var(--color-brand-blue-ink);
   outline-offset: 1px;
 }
 
@@ -98,6 +108,199 @@ button:disabled {
 }
 
 /* ==========================================================================
+   Componentes base (usar em vez de repetir dezenas de classes)
+   ========================================================================== */
+
+/* Superfície branca padrão (seções e cartões de primeiro nível). */
+@utility panel {
+  background-color: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 1.25rem;
+}
+
+/* Botões: .btn + uma variante. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+/* Tamanhos: seletor composto (.btn.btn-sm) vence a base sem depender da ordem. */
+@utility btn-sm {
+  &.btn {
+    min-height: 2.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@utility btn-lg {
+  &.btn {
+    min-height: 3.5rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Ação principal: azul da marca com texto em tinta (6,6:1; hover 5,7:1). */
+@utility btn-primary {
+  background-color: var(--color-brand-blue);
+  color: var(--color-ink);
+  &:hover:not(:disabled) {
+    background-color: var(--color-brand-blue-dark);
+  }
+}
+
+/* Ação operacional (check-in, preencher diário): azul da marca com tinta. */
+@utility btn-blue {
+  background-color: var(--color-brand-blue);
+  color: var(--color-ink);
+  &:hover:not(:disabled) {
+    background-color: var(--color-brand-blue-dark);
+  }
+}
+
+/* Ação de destaque forte (entrar, confirmar). */
+@utility btn-ink {
+  background-color: var(--color-ink);
+  color: #fff;
+  &:hover:not(:disabled) {
+    background-color: var(--color-ink-dark);
+  }
+}
+
+@utility btn-secondary {
+  background-color: #fff;
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  &:hover:not(:disabled) {
+    background-color: var(--color-paper);
+    border-color: #cfd5e0;
+  }
+}
+
+@utility btn-ghost {
+  background-color: transparent;
+  color: var(--color-ink-soft);
+  &:hover:not(:disabled) {
+    background-color: rgb(43 42 58 / 0.06);
+    color: var(--color-ink);
+  }
+}
+
+@utility btn-danger {
+  background-color: #be123c;
+  color: #fff;
+  &:hover:not(:disabled) {
+    background-color: #9f1239;
+  }
+}
+
+/* Botão só com ícone (precisa de aria-label). */
+@utility icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  &:hover:not(:disabled) {
+    background-color: rgb(43 42 58 / 0.06);
+    color: var(--color-ink);
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+/* Campos de formulário. */
+@utility field {
+  display: block;
+  width: 100%;
+  padding: 0.6875rem 0.875rem;
+  background-color: #fff;
+  border: 1px solid #d7dce6;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  &::placeholder {
+    color: #8a8fa0;
+  }
+  &:focus {
+    border-color: var(--color-brand-blue-ink);
+    box-shadow: 0 0 0 3px rgb(141 182 219 / 0.35);
+  }
+  &:disabled {
+    background-color: var(--color-paper);
+    opacity: 0.7;
+  }
+}
+
+@utility field-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+@utility field-hint {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+}
+
+/* Opção selecionável em grupo (alimentação, soneca, filtros). */
+@utility choice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+  background-color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  &:hover {
+    border-color: #cfd5e0;
+    color: var(--color-ink);
+  }
+  &[aria-pressed="true"],
+  &[aria-checked="true"] {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    color: var(--color-ink);
+  }
+}
+
+/* ==========================================================================
    Utilitários
    ========================================================================== */
 @utility no-scrollbar {
@@ -110,6 +313,10 @@ button:disabled {
 
 @utility safe-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Respeita quem prefere menos movimento na tela. */

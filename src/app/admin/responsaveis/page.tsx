@@ -7,16 +7,16 @@ import { Guardian, Pet } from "@/types/database.types";
 import { Modal } from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { useFeedback } from "@/components/ui/Feedback";
+import { PetAvatar } from "@/components/PetAvatar";
+import { PageShell, PageHeader, SearchField, EmptyState } from "@/components/ui/Page";
 import {
   Users,
   Plus,
-  Search,
   Phone,
   Mail,
   Edit3,
   MessageSquare,
-  Loader2,
-  Dog
+  Loader2
 } from "lucide-react";
 
 /** Monta o link do WhatsApp com DDI 55 apenas quando ainda não estiver presente. */
@@ -127,121 +127,101 @@ export default function ResponsaveisPage() {
   }, [guardians, searchTerm]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">Responsáveis</h1>
-            <span className="bg-brand-blue/15 text-brand-blue-ink text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              {guardians.length} cadastrados
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-ink-soft mt-0.5">
-            Gestão de contatos, WhatsApp para envio de relatórios e acesso ao portal
-          </p>
-        </div>
+    <PageShell>
+      <PageHeader
+        title="Responsáveis"
+        count={guardians.length}
+        description="Contatos usados no WhatsApp e no acesso ao portal. O vínculo com os baixinhos é feito no cadastro do pet."
+        actions={
+          <button type="button" onClick={handleOpenNew} className="btn btn-primary">
+            <Plus className="w-4 h-4" />
+            Cadastrar responsável
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={handleOpenNew}
-          className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-blue hover:bg-brand-blue-dark shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Cadastrar Responsável</span>
-        </button>
-      </div>
+      <SearchField
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Buscar por nome, telefone ou e-mail"
+        label="Buscar responsáveis"
+      />
 
-      {/* Search */}
-      <div className="relative w-full sm:w-80">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar por nome, telefone ou e-mail..."
-          className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-brand-blue shadow-2xs"
-        />
-      </div>
-
-      {/* List */}
       {loading ? (
         <CardGridSkeleton label="Carregando responsáveis..." />
       ) : filtered.length === 0 ? (
-        <div className="bg-white p-8 rounded-2xl text-center border border-slate-200">
-          <p className="text-sm font-semibold text-ink">Nenhum responsável encontrado.</p>
-        </div>
+        searchTerm.trim() ? (
+          <EmptyState icon={<Users className="w-6 h-6" />} title="Ninguém encontrado com essa busca">
+            Tente pelo nome, pelo telefone com DDD ou pelo e-mail.
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={<Users className="w-6 h-6" />}
+            title="Nenhum responsável cadastrado"
+            action={
+              <button type="button" onClick={handleOpenNew} className="btn btn-primary">
+                <Plus className="w-4 h-4" />
+                Cadastrar responsável
+              </button>
+            }
+          >
+            Cadastre o contato antes de vincular ao baixinho e enviar o diário pelo WhatsApp.
+          </EmptyState>
+        )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="panel divide-y divide-line overflow-hidden">
           {filtered.map((g) => (
-            <div
-              key={g.id}
-              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition-all"
-            >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-linear-to-br from-brand-blue/30 to-brand-pink/30 flex items-center justify-center text-ink font-bold text-sm">
-                      {g.full_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-ink leading-tight">{g.full_name}</h3>
-                      <p className="text-xs text-ink-soft flex items-center gap-1 mt-0.5">
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        {g.phone || "Sem telefone cadastrado"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(g)}
-                    aria-label={`Editar ${g.full_name}`}
-                    className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {g.email && (
-                  <p className="text-xs text-ink-soft flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    {g.email}
+            <li key={g.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex items-start gap-3.5 min-w-0 md:w-[34%]">
+                <span
+                  aria-hidden
+                  className="w-11 h-11 rounded-2xl bg-brand-blue text-ink font-display font-extrabold text-lg flex items-center justify-center shrink-0"
+                >
+                  {g.full_name.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold text-ink leading-tight truncate">{g.full_name}</h2>
+                  <p className="text-sm text-ink-soft tabular flex items-center gap-1.5 mt-0.5">
+                    <Phone className="w-3.5 h-3.5 shrink-0" />
+                    {g.phone || "Sem telefone"}
                   </p>
-                )}
-
-                {g.notes && (
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-ink">
-                    <span className="text-[10px] font-bold text-slate-400 block">OBSERVAÇÕES</span>
-                    {g.notes}
-                  </div>
-                )}
-
-                <LinkedPets pets={petsByGuardian[g.id] || []} />
+                  {g.email && (
+                    <p className="text-sm text-ink-soft flex items-center gap-1.5 truncate">
+                      <Mail className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{g.email}</span>
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div className="flex-1 min-w-0 space-y-2">
+                <LinkedPets pets={petsByGuardian[g.id] || []} />
+                {g.notes && <p className="text-sm text-ink-soft leading-relaxed">{g.notes}</p>}
+              </div>
+
+              <div className="flex items-center gap-2 md:justify-end shrink-0">
                 <a
                   href={whatsappLink(g.phone)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-emerald-600 hover:underline font-semibold"
+                  className="btn btn-sm btn-secondary text-emerald-800!"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  Chamar no WhatsApp
+                  WhatsApp
                 </a>
-
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(g)}
-                  className="text-slate-500 hover:text-slate-700"
+                  aria-label={`Editar ${g.full_name}`}
+                  className="btn btn-sm btn-secondary"
                 >
+                  <Edit3 className="w-3.5 h-3.5" />
                   Editar
                 </button>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Modal Cadastro/Edição */}
@@ -250,120 +230,106 @@ export default function ResponsaveisPage() {
         onClose={() => setModalOpen(false)}
         locked={isSaving}
         size="md"
-        title={editingGuardian?.id ? "Editar Responsável" : "Cadastrar Novo Responsável"}
+        title={editingGuardian?.id ? "Editar responsável" : "Cadastrar responsável"}
         subtitle="Contato usado no WhatsApp e no acesso ao portal"
         icon={
-          <div className="w-9 h-9 rounded-xl bg-brand-blue/15 text-brand-blue-ink flex items-center justify-center">
-            <Users className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-xl bg-brand-blue-light text-brand-blue-ink flex items-center justify-center">
+            <Users className="w-5 h-5" />
           </div>
         }
       >
         {editingGuardian && (
-            <form onSubmit={handleSaveGuardian} className="p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
-              <div className="space-y-1">
-                <label className="font-bold text-ink">Nome Completo *</label>
+          <form onSubmit={handleSaveGuardian} className="px-4 sm:px-6 py-5 space-y-4 text-sm">
+            <div>
+              <label htmlFor="guardian-name" className="field-label">Nome completo</label>
+              <input
+                id="guardian-name"
+                type="text"
+                required
+                value={editingGuardian.full_name || ""}
+                onChange={(e) => setEditingGuardian(prev => ({ ...prev, full_name: e.target.value }))}
+                placeholder="Ex.: Mariana Silva"
+                className="field"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="guardian-phone" className="field-label">WhatsApp com DDD</label>
                 <input
-                  type="text"
+                  id="guardian-phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   required
-                  value={editingGuardian.full_name || ""}
-                  onChange={(e) => setEditingGuardian(prev => ({ ...prev, full_name: e.target.value }))}
-                  placeholder="Ex: Mariana Silva"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                  value={editingGuardian.phone || ""}
+                  onChange={(e) => setEditingGuardian(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="(11) 98765-4321"
+                  className="field"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-ink">Telefone WhatsApp *</label>
-                  <input
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    required
-                    value={editingGuardian.phone || ""}
-                    onChange={(e) => setEditingGuardian(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="Ex: (11) 98765-4321"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-ink">E-mail</label>
-                  <input
-                    type="email"
-                    value={editingGuardian.email || ""}
-                    onChange={(e) => setEditingGuardian(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="mariana@exemplo.com"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-ink">Observações e Autorizações</label>
-                <textarea
-                  rows={2}
-                  value={editingGuardian.notes || ""}
-                  onChange={(e) => setEditingGuardian(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Ex: Autorizou fotos; prefere retirada após às 18h"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+              <div>
+                <label htmlFor="guardian-email" className="field-label">E-mail (opcional)</label>
+                <input
+                  id="guardian-email"
+                  type="email"
+                  value={editingGuardian.email || ""}
+                  onChange={(e) => setEditingGuardian(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="mariana@exemplo.com"
+                  className="field"
                 />
               </div>
+            </div>
 
-              {editingGuardian.id && (
-                <div className="border-t border-slate-100 pt-3 space-y-1">
-                  <LinkedPets pets={petsByGuardian[editingGuardian.id] || []} />
-                  <p className="text-[11px] text-ink-soft">
-                    Para vincular ou desvincular cães, edite o cadastro do pet na aba Pets.
-                  </p>
-                </div>
-              )}
+            <div>
+              <label htmlFor="guardian-notes" className="field-label">Observações e autorizações</label>
+              <textarea
+                id="guardian-notes"
+                rows={2}
+                value={editingGuardian.notes || ""}
+                onChange={(e) => setEditingGuardian(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Ex.: Autorizou fotos; prefere buscar depois das 18h"
+                className="field"
+              />
+            </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-brand-blue-ink hover:bg-ink rounded-xl shadow-xs disabled:opacity-60 cursor-pointer"
-                >
-                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isSaving ? "Salvando..." : "Salvar"}
-                </button>
+            {editingGuardian.id && (
+              <div className="border-t border-line pt-4 space-y-2">
+                <LinkedPets pets={petsByGuardian[editingGuardian.id] || []} />
+                <p className="field-hint">Para vincular ou desvincular baixinhos, edite o cadastro do pet.</p>
               </div>
-            </form>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-4 border-t border-line">
+              <button type="button" onClick={() => setModalOpen(false)} className="btn btn-ghost">
+                Cancelar
+              </button>
+              <button type="submit" disabled={isSaving} className="btn btn-primary">
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isSaving ? "Salvando..." : editingGuardian.id ? "Salvar alterações" : "Cadastrar responsável"}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
-    </div>
+    </PageShell>
   );
 }
 
 function LinkedPets({ pets }: { pets: Pet[] }) {
+  if (pets.length === 0) return <p className="text-sm text-ink-soft">Nenhum baixinho vinculado.</p>;
   return (
-    <div className="space-y-1.5">
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-        Cães vinculados
-      </span>
-      {pets.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {pets.map((p) => (
-            <span
-              key={p.id}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-brand-pink/10 text-brand-pink-ink font-semibold"
-            >
-              <Dog className="w-3 h-3" />
-              {p.name}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-slate-400 italic">Nenhum cão vinculado.</p>
-      )}
-    </div>
+    <ul aria-label="Baixinhos vinculados" className="flex flex-wrap gap-1.5">
+      {pets.map((p) => (
+        <li
+          key={p.id}
+          className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full text-sm bg-brand-pink-light text-ink font-semibold"
+        >
+          <PetAvatar pet={p} size="xs" />
+          {p.name}
+        </li>
+      ))}
+    </ul>
   );
 }

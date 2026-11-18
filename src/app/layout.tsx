@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito } from "next/font/google";
+import { Bricolage_Grotesque, Nunito } from "next/font/google";
 import "./globals.css";
 import { FeedbackProvider } from "@/components/ui/Feedback";
 
@@ -7,6 +7,13 @@ const nunito = Nunito({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-nunito",
+});
+
+// Títulos, nomes dos pets e números: grotesca com personalidade, contrasta com a Nunito arredondada.
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-bricolage",
 });
 
 export const metadata: Metadata = {
@@ -31,9 +38,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={nunito.variable}>
+    <html lang="pt-BR" className={`${nunito.variable} ${bricolage.variable}`}>
       {/* Extensões do navegador (ex.: ColorZilla) injetam atributos no <body>; ignora só isso. */}
-      <body className="min-h-dvh flex flex-col bg-slate-50 text-ink" suppressHydrationWarning>
+      <body className="min-h-dvh flex flex-col bg-paper text-ink" suppressHydrationWarning>
         <FeedbackProvider>
           <div className="flex-1 flex flex-col">{children}</div>
         </FeedbackProvider>

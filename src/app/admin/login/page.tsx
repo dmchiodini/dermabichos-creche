@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail } from "lucide-react";
 import { LoginCard, safeNextPath } from "@/components/auth/LoginCard";
 import { getLoginMode, loginAdmin } from "@/services/auth-actions";
 
@@ -17,17 +16,16 @@ export default function AdminLoginPage() {
 
   return (
     <LoginCard
-      title="Painel do Administrador"
-      subtitle="Gestão cadastral, histórico completo, indicadores e equipe"
-      background="bg-linear-to-b from-slate-100 to-slate-200"
-      submitLabel="Acessar Painel Administrativo"
-      submitClassName="bg-ink hover:bg-slate-800"
-      secretLabel="Senha do Administrador:"
+      area="Administração"
+      title="Entrar no painel"
+      subtitle="Cadastros, equipe, indicadores e histórico da creche."
+      submitLabel="Entrar"
+      secretLabel="Senha"
       secretPlaceholder="••••••••"
       demoHint={
         demo ? (
           <>
-            Modo demonstração: digite qualquer senha (ex: <strong>admin123</strong>) para entrar.
+            Modo demonstração: qualquer senha funciona (ex.: <strong>admin123</strong>).
           </>
         ) : null
       }
@@ -39,27 +37,24 @@ export default function AdminLoginPage() {
           router.refresh();
           return null;
         } catch {
-          return "Não foi possível conectar ao servidor. Tente novamente.";
+          return "Não foi possível conectar ao servidor. Verifique a internet e tente novamente.";
         }
       }}
     >
-      <div className="space-y-1">
-        <label htmlFor="admin-email" className="text-xs font-bold text-ink">
-          E-mail Administrativo:
+      <div>
+        <label htmlFor="admin-email" className="field-label">
+          E-mail
         </label>
-        <div className="relative">
-          <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            id="admin-email"
-            type="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@dermabichos.com.br"
-            className="w-full text-sm pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-brand-blue"
-          />
-        </div>
+        <input
+          id="admin-email"
+          type="email"
+          autoComplete="username"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="admin@dermabichos.com.br"
+          className="field"
+        />
       </div>
     </LoginCard>
   );

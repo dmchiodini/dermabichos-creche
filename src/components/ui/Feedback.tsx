@@ -42,7 +42,7 @@ const toastStyles: Record<ToastKind, { box: string; icon: ReactNode }> = {
     icon: <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />,
   },
   info: {
-    box: "bg-white border-brand-blue/40 text-ink",
+    box: "bg-white border-brand-blue text-ink",
     icon: <Info className="w-5 h-5 text-brand-blue-ink shrink-0" />,
   },
 };
@@ -101,7 +101,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             className={cn(
-              "pointer-events-auto w-full max-w-sm flex items-start gap-2.5 rounded-2xl border shadow-lg px-3.5 py-3 text-sm font-semibold animate-pop-in",
+              "pointer-events-auto w-full max-w-sm flex items-start gap-2.5 rounded-2xl border shadow-[0_12px_32px_-12px_rgb(43_42_58/0.35)] px-3.5 py-3 text-sm font-semibold animate-pop-in",
               toastStyles[t.kind].box
             )}
           >
@@ -111,7 +111,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => dismiss(t.id)}
               aria-label="Fechar aviso"
-              className="text-slate-400 hover:text-ink -m-1 p-1 rounded-lg cursor-pointer"
+              className="text-ink-soft hover:text-ink -m-1 p-1 rounded-lg cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -129,7 +129,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           <div
             className={cn(
               "w-9 h-9 rounded-xl flex items-center justify-center",
-              confirmState?.danger ? "bg-rose-50 text-rose-600" : "bg-brand-blue/15 text-brand-blue-ink"
+              confirmState?.danger ? "bg-rose-50 text-rose-700" : "bg-brand-blue-light text-brand-blue-ink"
             )}
           >
             <AlertTriangle className="w-4 h-4" />
@@ -140,17 +140,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => closeConfirm(false)}
-              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-200/70 cursor-pointer"
+              className="btn btn-ghost"
             >
               {confirmState?.cancelLabel || "Cancelar"}
             </button>
             <button
               type="button"
               onClick={() => closeConfirm(true)}
-              className={cn(
-                "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-xs cursor-pointer",
-                confirmState?.danger ? "bg-rose-600 hover:bg-rose-700" : "bg-ink hover:bg-ink-dark"
-              )}
+              className={cn("btn", confirmState?.danger ? "btn-danger" : "btn-ink")}
             >
               {confirmState?.confirmLabel || "Confirmar"}
             </button>
@@ -158,7 +155,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         }
       >
         {confirmState?.message && (
-          <div className="p-5 text-sm text-ink-soft leading-relaxed">{confirmState.message}</div>
+          <div className="px-4 sm:px-6 py-5 text-sm text-ink-soft leading-relaxed">{confirmState.message}</div>
         )}
       </Modal>
     </FeedbackContext.Provider>

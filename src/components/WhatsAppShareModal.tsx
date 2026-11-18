@@ -134,7 +134,7 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer"
+            className="btn btn-ghost"
           >
             Fechar
           </button>
@@ -142,7 +142,7 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
             type="button"
             onClick={handleOpenWhatsApp}
             disabled={!selectedGuardian?.phone}
-            className="flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="btn bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <MessageSquare className="w-4 h-4" />
             <span>Abrir WhatsApp</span>
@@ -150,20 +150,20 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
         </div>
       }
     >
-      <div className="p-4 sm:p-5 space-y-4">
+      <div className="px-4 sm:px-6 py-5 space-y-5">
         {/* Seleção do Responsável */}
         <fieldset className="space-y-1.5">
-          <legend className="text-xs font-semibold text-ink mb-1.5">Destinatário (Responsável):</legend>
+          <legend className="field-label">Enviar para</legend>
           {guardians.length > 0 ? (
             <div className="flex flex-col gap-1.5">
               {guardians.map((g) => (
                 <label
                   key={g.id}
                   className={cn(
-                    "flex items-center justify-between gap-2 p-3 rounded-xl border text-xs cursor-pointer transition-colors",
+                    "flex items-center justify-between gap-2 p-3 rounded-xl border text-sm cursor-pointer transition-colors",
                     selectedGuardian?.id === g.id
-                      ? "border-brand-blue bg-brand-blue/10 font-semibold text-ink"
-                      : "border-slate-200 hover:bg-slate-50 text-ink-soft"
+                      ? "border-brand-blue bg-brand-blue-light font-bold text-ink"
+                      : "border-line hover:bg-paper text-ink-soft"
                   )}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -176,14 +176,14 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
                     />
                     <span className="truncate">{g.full_name}</span>
                   </div>
-                  <span className="font-mono text-slate-500 shrink-0">{g.phone || "Sem telefone"}</span>
+                  <span className="tabular text-ink-soft shrink-0">{g.phone || "Sem telefone"}</span>
                 </label>
               ))}
             </div>
           ) : (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-800 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Nenhum responsável vinculado a este pet. Cadastre um telefone antes de compartilhar.</span>
+              <span>Este baixinho não tem responsável vinculado. Vincule um no cadastro do pet, na Administração, para enviar.</span>
             </div>
           )}
         </fieldset>
@@ -191,24 +191,23 @@ Um grande abraço de toda a equipe Dermabichos! 💖🐶`;
         {/* Prévia da Mensagem */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink">Prévia da Mensagem:</span>
+            <span className="field-label mb-0!">Mensagem</span>
             <button
               type="button"
               onClick={handleCopyText}
-              className="text-xs text-brand-blue-ink hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+              className="btn btn-sm btn-ghost text-brand-blue-ink!"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? "Copiado!" : "Copiar Texto"}
+              {copied ? "Copiado" : "Copiar texto"}
             </button>
           </div>
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-ink whitespace-pre-wrap max-h-56 overflow-y-auto leading-relaxed">
+          <div className="mt-1.5 bg-[#E7F6EC] p-3.5 rounded-2xl rounded-tl-md text-[13px] text-ink whitespace-pre-wrap max-h-56 overflow-y-auto leading-relaxed">
             {messageText}
           </div>
         </div>
 
-        <p className="text-[11px] text-ink-soft italic">
-          * A ação abrirá o aplicativo do WhatsApp com a mensagem preenchida para revisão. O sistema registrará que o
-          envio foi iniciado.
+        <p className="text-xs text-ink-soft">
+          O WhatsApp abre com a mensagem pronta para você revisar antes de enviar. O diário fica marcado como enviado.
         </p>
       </div>
     </Modal>

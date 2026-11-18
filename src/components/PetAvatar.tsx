@@ -6,13 +6,15 @@ import { cn } from "@/lib/utils";
 
 interface PetAvatarProps {
   pet: Partial<Pet>;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 const sizeClasses = {
-  sm: "w-9 h-9 text-xs",
-  md: "w-12 h-12 text-sm",
-  lg: "w-16 h-16 text-base",
+  xs: "w-6 h-6 text-[11px] rounded-full",
+  sm: "w-9 h-9 text-sm rounded-xl",
+  md: "w-12 h-12 text-lg rounded-2xl",
+  lg: "w-16 h-16 text-2xl rounded-2xl",
+  xl: "w-24 h-24 sm:w-28 sm:h-28 text-4xl rounded-[1.75rem]",
 };
 
 export function PetAvatar({ pet, size = "md" }: PetAvatarProps) {
@@ -22,7 +24,7 @@ export function PetAvatar({ pet, size = "md" }: PetAvatarProps) {
   if (pet.photo_url && failedSrc !== pet.photo_url) {
     const src = pet.photo_url;
     return (
-      <div className={cn("relative rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200", sizeClasses[size])}>
+      <div className={cn("relative overflow-hidden bg-brand-blue-light shrink-0", sizeClasses[size])}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
@@ -37,14 +39,14 @@ export function PetAvatar({ pet, size = "md" }: PetAvatarProps) {
     );
   }
 
-  // Fallback com inicial e gradiente da marca
+  // Sem foto: inicial em tinta sobre o rosa da marca
   const initial = pet.name ? pet.name.charAt(0).toUpperCase() : "P";
 
   return (
     <div
       aria-hidden
       className={cn(
-        "relative rounded-xl flex items-center justify-center font-bold text-white shadow-xs shrink-0 bg-linear-to-tr from-brand-pink to-brand-blue",
+        "relative flex items-center justify-center font-display font-extrabold text-ink shrink-0 bg-brand-pink",
         sizeClasses[size]
       )}
     >

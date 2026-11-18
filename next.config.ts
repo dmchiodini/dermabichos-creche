@@ -65,6 +65,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     // Rotas antigas que duplicavam as páginas administrativas sem proteção.
     return [
+      // O endereço principal é o que se compartilha com os responsáveis: vai direto ao
+      // login do portal. A equipe entra por /equipe.
+      { source: "/", destination: "/portal", permanent: false },
       { source: "/admin", destination: "/admin/dashboard", permanent: false },
       { source: "/rotina", destination: "/monitora", permanent: true },
       { source: "/dashboard", destination: "/admin/dashboard", permanent: true },

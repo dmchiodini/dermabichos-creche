@@ -109,8 +109,8 @@ export function SearchableSelect({
   };
 
   return (
-    <div ref={rootRef} className="relative space-y-1">
-      <label htmlFor={`${id}-trigger`} className="font-bold text-ink">
+    <div ref={rootRef} className="relative">
+      <label htmlFor={`${id}-trigger`} className="field-label">
         {label}
       </label>
 
@@ -122,9 +122,9 @@ export function SearchableSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        className="w-full flex items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-left disabled:opacity-60 cursor-pointer"
+        className="field flex! items-center justify-between gap-2 text-left cursor-pointer"
       >
-        <span className={`truncate ${value ? "text-ink" : "text-slate-400"}`}>{selectedLabel || placeholder}</span>
+        <span className={`truncate ${value ? "text-ink" : "text-[#8a8fa0]"}`}>{selectedLabel || placeholder}</span>
         <span className="flex items-center gap-1 shrink-0">
           {value && !disabled && (
             <span
@@ -135,19 +135,19 @@ export function SearchableSelect({
                 e.stopPropagation();
                 onChange("");
               }}
-              className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-600"
+              className="p-1 rounded-md hover:bg-paper text-ink-soft hover:text-ink"
             >
               <X className="w-3.5 h-3.5" />
             </span>
           )}
-          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown className={`w-4 h-4 text-ink-soft transition-transform ${open ? "rotate-180" : ""}`} />
         </span>
       </button>
 
       {open && (
-        <div className="absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden animate-fade-in">
-          <div className="relative border-b border-slate-100">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="absolute z-30 left-0 right-0 mt-1.5 bg-white border border-line rounded-2xl shadow-[0_16px_40px_-16px_rgb(43_42_58/0.35)] overflow-hidden animate-fade-in">
+          <div className="relative border-b border-line">
+            <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               ref={searchRef}
               type="text"
@@ -183,7 +183,7 @@ export function SearchableSelect({
                     onPointerEnter={() => setActive(index)}
                     onClick={() => select(option)}
                     className={`flex items-center justify-between gap-2 px-3 py-2 cursor-pointer ${
-                      index === active ? "bg-brand-blue/10" : ""
+                      index === active ? "bg-brand-blue-light" : ""
                     } ${selected ? "font-bold text-brand-blue-ink" : "text-ink"}`}
                   >
                     <span className="min-w-0">

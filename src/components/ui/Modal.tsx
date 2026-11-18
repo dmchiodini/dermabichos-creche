@@ -100,18 +100,18 @@ export function Modal({ open, onClose, title, subtitle, icon, children, footer, 
         )}
       >
         {/* Alça visual do bottom sheet no celular */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 bg-slate-50" aria-hidden>
-          <span className="w-10 h-1.5 rounded-full bg-slate-300" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden>
+          <span className="w-10 h-1.5 rounded-full bg-line" />
         </div>
 
-        <header className="px-4 sm:px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50 shrink-0">
+        <header className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-line flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             {icon && <div className="shrink-0">{icon}</div>}
             <div className="min-w-0">
-              <h2 id={titleId} className="text-sm sm:text-base font-black text-ink leading-tight truncate">
+              <h2 id={titleId} className="text-lg sm:text-xl font-bold text-ink leading-tight truncate">
                 {title}
               </h2>
-              {subtitle && <p className="text-[11px] sm:text-xs text-ink-soft mt-0.5">{subtitle}</p>}
+              {subtitle && <p className="text-xs sm:text-sm text-ink-soft mt-0.5">{subtitle}</p>}
             </div>
           </div>
           <button
@@ -119,7 +119,7 @@ export function Modal({ open, onClose, title, subtitle, icon, children, footer, 
             onClick={onClose}
             disabled={locked}
             aria-label="Fechar"
-            className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-ink hover:bg-slate-200/70 transition-colors cursor-pointer disabled:opacity-40"
+            className="icon-btn"
           >
             <X className="w-5 h-5" />
           </button>
@@ -128,7 +128,7 @@ export function Modal({ open, onClose, title, subtitle, icon, children, footer, 
         <div className="overflow-y-auto overscroll-contain flex-1">{children}</div>
 
         {footer && (
-          <footer className="px-4 sm:px-5 py-3 bg-slate-50 border-t border-slate-100 shrink-0 safe-bottom sm:pb-3">
+          <footer className="px-4 sm:px-6 py-3 bg-paper border-t border-line shrink-0 safe-bottom sm:pb-3">
             {footer}
           </footer>
         )}
