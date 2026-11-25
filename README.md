@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **Propriedade Intelectual & Código Proprietário:**
+> Este repositório é disponibilizado publicamente para fins de demonstração técnica e portfólio.
+> **Todos os direitos são reservados.** É estritamente proibida a cópia, clonagem para fins comerciais ou redistribuição deste código sem autorização expressa do autor.
+
+---
+
 # 🐾 Dermabichos — Gestão da Creche dos Baixinhos
 
 Sistema completo para planejamento, gestão operacional diária e acompanhamento em tempo real da creche canina do petshop **Dermabichos**.
@@ -82,7 +89,7 @@ Construído de acordo com todas as diretrizes da arquitetura, identidade visual 
 
 ## 🗄️ Configuração do Banco de Dados (Supabase)
 
-1. Acesse o **SQL Editor** do seu painel Supabase (`https://supabase.com/dashboard/project/etbukdpexskidpyoyylo/sql`).
+1. Acesse o **SQL Editor** do seu painel Supabase (`https://supabase.com/dashboard/project/<PROJECT_ID>/sql`).
 2. Abra e execute o arquivo [`supabase/schema.sql`](./supabase/schema.sql). Ele criará:
    - Todas as tabelas relacionais com chaves estrangeiras e índices.
    - Restrição e trigger de até 5 fotos por relatório diário.
